@@ -55,8 +55,9 @@ async def process_payment(payment_data):
         order_id = payment_data.get('order_id')
         actually_paid = float(payment_data.get('actually_paid', 0))
         
-        # Only process confirmed payments
-        if payment_status != 'confirmed':
+        # Only process confirmed or finished payments
+        if payment_status not in ['confirmed', 'finished']:
+            print(f"Payment {payment_id} status: {payment_status} - not processing")
             return
         
         # Extract user_id from order_id (format: "deposit_USER_ID_TIMESTAMP")
@@ -74,18 +75,21 @@ async def process_payment(payment_data):
         if not user:
             return
         
+        # Use price_amount instead of actually_paid for consistency
+        price_amount = float(payment_data.get('price_amount', actually_paid))
+        
         # Add funds to user balance
-        await update_user_balance(user_id, actually_paid)
+        await update_user_balance(user_id, price_amount)
         
         # Record the transaction
         await record_transaction(
             user_id=user_id,
-            amount=actually_paid,
+            amount=price_amount,
             transaction_type="deposit",
-            description=f"Crypto deposit - Payment ID: {payment_id}"
+            description=f"Crypto deposit - Payment ID: {payment_id} - Status: {payment_status}"
         )
         
-        print(f"Payment processed: User {user_id} deposited ${actually_paid}")
+        print(f"Payment processed: User {user_id} deposited ${price_amount} (actually paid: ${actually_paid})")
         
     except Exception as e:
         print(f"Error processing payment: {str(e)}")

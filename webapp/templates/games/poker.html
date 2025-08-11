@@ -1,0 +1,741 @@
+{% extends "base.html" %}
+
+{% block title %}Poker - Gamble Bot{% endblock %}
+{% block game_title %}🃏 Five Card Draw Poker{% endblock %}
+
+{% block extra_css %}
+<style>
+.game-area {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.poker-table {
+    background: linear-gradient(135deg, #0f4c3a 0%, #1a5f4a 100%);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 20px;
+    color: white;
+    position: relative;
+    box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+}
+
+.poker-table::before {
+    content: '';
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    border: 3px solid #ffd700;
+    border-radius: 15px;
+    pointer-events: none;
+}
+
+.game-info {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.pot-amount {
+    font-size: 2em;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.hand-area {
+    margin: 30px 0;
+}
+
+.hand-title {
+    text-align: center;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+.cards-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.card {
+    width: 80px;
+    height: 112px;
+    background: white;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card.selected {
+    transform: translateY(-10px);
+    box-shadow: 0 8px 16px rgba(255, 215, 0, 0.5);
+    border: 2px solid #ffd700;
+}
+
+.card.held {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    color: #333;
+}
+
+.card-back {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+}
+
+.card-rank {
+    font-size: 18px;
+    margin-bottom: 5px;
+}
+
+.card-suit {
+    font-size: 24px;
+}
+
+.card.red {
+    color: #dc3545;
+}
+
+.card.black {
+    color: #333;
+}
+
+.hold-indicator {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: #ffd700;
+    color: #333;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    font-weight: bold;
+}
+
+.betting-controls {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.bet-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.bet-btn {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.bet-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.bet-btn.selected {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    transform: scale(1.05);
+}
+
+.custom-bet {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.custom-bet input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+    color: #333;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.btn:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.hand-ranking {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.ranking-title {
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.ranking-value {
+    font-size: 1.2em;
+    color: #007bff;
+    font-weight: bold;
+}
+
+.result-display {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    display: none;
+}
+
+.payout-table {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.payout-table h4 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.payout-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.payout-row:last-child {
+    border-bottom: none;
+}
+
+.payout-hand {
+    font-weight: bold;
+}
+
+.payout-multiplier {
+    color: #28a745;
+    font-weight: bold;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-area">
+    <!-- Poker Table -->
+    <div class="poker-table">
+        <div class="game-info">
+            <div class="pot-amount" id="potAmount">$0.00</div>
+            <div>Current Bet</div>
+        </div>
+        
+        <!-- Dealer's Hand (Hidden) -->
+        <div class="hand-area">
+            <div class="hand-title">🏠 House Hand</div>
+            <div class="cards-container" id="dealerCards">
+                <!-- Dealer cards will be shown here -->
+            </div>
+        </div>
+        
+        <!-- Player's Hand -->
+        <div class="hand-area">
+            <div class="hand-title">🃏 Your Hand</div>
+            <div class="cards-container" id="playerCards">
+                <!-- Player cards will be shown here -->
+            </div>
+            <div class="hand-ranking" id="handRanking" style="display: none;">
+                <div class="ranking-title">Hand Ranking:</div>
+                <div class="ranking-value" id="rankingValue">-</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Betting Controls -->
+    <div class="betting-controls" id="bettingControls">
+        <h3>💰 Place Your Bet</h3>
+        <div class="bet-options">
+            <button class="bet-btn" onclick="selectBet(5)">$5</button>
+            <button class="bet-btn" onclick="selectBet(10)">$10</button>
+            <button class="bet-btn" onclick="selectBet(25)">$25</button>
+            <button class="bet-btn" onclick="selectBet(50)">$50</button>
+        </div>
+        
+        <div class="custom-bet">
+            <label>Custom Bet:</label>
+            <input type="number" id="customBet" min="1" step="0.01" placeholder="Enter bet amount">
+            <button class="btn btn-primary" onclick="selectCustomBet()">Set</button>
+        </div>
+        
+        <div class="game-controls">
+            <button class="btn btn-primary" id="dealBtn" onclick="dealCards()" disabled>
+                🃏 Deal Cards
+            </button>
+        </div>
+    </div>
+    
+    <!-- Game Controls -->
+    <div class="game-controls" id="gameControls" style="display: none;">
+        <button class="btn btn-secondary" onclick="holdCard('all')">Hold All</button>
+        <button class="btn btn-warning" onclick="drawCards()">Draw Cards</button>
+        <button class="btn btn-primary" onclick="showdown()">Show Hand</button>
+    </div>
+    
+    <!-- Result Display -->
+    <div class="result-display" id="resultDisplay">
+        <h3 id="resultTitle">Game Result</h3>
+        <p id="resultMessage">-</p>
+        <button class="btn btn-primary" onclick="newGame()">New Game</button>
+    </div>
+    
+    <!-- Payout Table -->
+    <div class="payout-table">
+        <h4>💎 Payout Table</h4>
+        <div class="payout-row">
+            <span class="payout-hand">Royal Flush</span>
+            <span class="payout-multiplier">250x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Straight Flush</span>
+            <span class="payout-multiplier">50x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Four of a Kind</span>
+            <span class="payout-multiplier">25x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Full House</span>
+            <span class="payout-multiplier">9x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Flush</span>
+            <span class="payout-multiplier">6x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Straight</span>
+            <span class="payout-multiplier">4x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Three of a Kind</span>
+            <span class="payout-multiplier">3x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Two Pair</span>
+            <span class="payout-multiplier">2x</span>
+        </div>
+        <div class="payout-row">
+            <span class="payout-hand">Jacks or Better</span>
+            <span class="payout-multiplier">1x</span>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentBet = 0;
+let userBalance = {{ user.balance }};
+let userId = {{ user_id }};
+let gameState = 'betting'; // betting, dealt, drawn, finished
+let playerHand = [];
+let dealerHand = [];
+let heldCards = [];
+
+const suits = ['♠', '♥', '♦', '♣'];
+const ranks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+
+function selectBet(amount) {
+    if (amount > userBalance) {
+        alert('Insufficient balance');
+        return;
+    }
+    
+    currentBet = amount;
+    updateBetDisplay();
+    
+    // Update button states
+    document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('selected'));
+    event.target.classList.add('selected');
+    
+    // Clear custom input
+    document.getElementById('customBet').value = '';
+    
+    // Enable deal button
+    document.getElementById('dealBtn').disabled = false;
+}
+
+function selectCustomBet() {
+    const customInput = document.getElementById('customBet');
+    const amount = parseFloat(customInput.value);
+    
+    if (amount && amount > 0 && amount <= userBalance) {
+        currentBet = amount;
+        updateBetDisplay();
+        
+        // Clear other selections
+        document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('selected'));
+        
+        // Enable deal button
+        document.getElementById('dealBtn').disabled = false;
+    } else {
+        alert('Please enter a valid bet amount');
+    }
+}
+
+function updateBetDisplay() {
+    document.getElementById('potAmount').textContent = `$${currentBet.toFixed(2)}`;
+}
+
+async function dealCards() {
+    if (currentBet === 0) {
+        alert('Please place a bet first');
+        return;
+    }
+    
+    // Generate random cards for player
+    playerHand = generateHand(5);
+    heldCards = [false, false, false, false, false];
+    
+    displayPlayerCards();
+    
+    // Hide betting controls, show game controls
+    document.getElementById('bettingControls').style.display = 'none';
+    document.getElementById('gameControls').style.display = 'block';
+    
+    gameState = 'dealt';
+    
+    // Show hand ranking
+    updateHandRanking();
+}
+
+function generateHand(count) {
+    const hand = [];
+    const usedCards = new Set();
+    
+    while (hand.length < count) {
+        const suit = suits[Math.floor(Math.random() * suits.length)];
+        const rank = ranks[Math.floor(Math.random() * ranks.length)];
+        const cardKey = `${rank}${suit}`;
+        
+        if (!usedCards.has(cardKey)) {
+            usedCards.add(cardKey);
+            hand.push({ rank, suit });
+        }
+    }
+    
+    return hand;
+}
+
+function displayPlayerCards() {
+    const container = document.getElementById('playerCards');
+    container.innerHTML = '';
+    
+    playerHand.forEach((card, index) => {
+        const cardElement = createCardElement(card, index);
+        container.appendChild(cardElement);
+    });
+}
+
+function createCardElement(card, index) {
+    const cardDiv = document.createElement('div');
+    cardDiv.className = `card ${isRedSuit(card.suit) ? 'red' : 'black'}`;
+    cardDiv.onclick = () => toggleHold(index);
+    
+    if (heldCards[index]) {
+        cardDiv.classList.add('held');
+    }
+    
+    cardDiv.innerHTML = `
+        <div class="card-rank">${card.rank}</div>
+        <div class="card-suit">${card.suit}</div>
+        ${heldCards[index] ? '<div class="hold-indicator">H</div>' : ''}
+    `;
+    
+    return cardDiv;
+}
+
+function isRedSuit(suit) {
+    return suit === '♥' || suit === '♦';
+}
+
+function toggleHold(index) {
+    if (gameState !== 'dealt') return;
+    
+    heldCards[index] = !heldCards[index];
+    displayPlayerCards();
+}
+
+function holdCard(action) {
+    if (gameState !== 'dealt') return;
+    
+    if (action === 'all') {
+        heldCards = [true, true, true, true, true];
+    } else if (action === 'none') {
+        heldCards = [false, false, false, false, false];
+    }
+    
+    displayPlayerCards();
+}
+
+function drawCards() {
+    if (gameState !== 'dealt') return;
+    
+    // Replace non-held cards
+    for (let i = 0; i < playerHand.length; i++) {
+        if (!heldCards[i]) {
+            const newCards = generateHand(1);
+            playerHand[i] = newCards[0];
+        }
+    }
+    
+    displayPlayerCards();
+    updateHandRanking();
+    
+    gameState = 'drawn';
+    
+    // Hide game controls
+    document.getElementById('gameControls').style.display = 'none';
+    
+    // Auto-showdown after draw
+    setTimeout(showdown, 1000);
+}
+
+async function showdown() {
+    if (gameState !== 'drawn') return;
+    
+    const handRank = evaluateHand(playerHand);
+    const payout = calculatePayout(handRank, currentBet);
+    
+    try {
+        const response = await fetch('/api/game/bet', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                game_type: 'poker',
+                bet_amount: currentBet,
+                game_data: {
+                    hand: playerHand,
+                    handRank: handRank,
+                    payout: payout
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            userBalance = result.new_balance;
+            updateBalanceDisplay(userBalance);
+            showResult(payout > 0, handRank, payout);
+        } else {
+            showResult(false, 'High Card', 0, result.error);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showResult(false, 'High Card', 0, 'Network error occurred');
+    }
+    
+    gameState = 'finished';
+}
+
+function evaluateHand(hand) {
+    // Simple hand evaluation (you can make this more sophisticated)
+    const ranks = hand.map(card => card.rank);
+    const suits = hand.map(card => card.suit);
+    
+    // Count rank occurrences
+    const rankCounts = {};
+    ranks.forEach(rank => {
+        rankCounts[rank] = (rankCounts[rank] || 0) + 1;
+    });
+    
+    const counts = Object.values(rankCounts).sort((a, b) => b - a);
+    const isFlush = suits.every(suit => suit === suits[0]);
+    
+    // Check for straight
+    const rankValues = ranks.map(rank => {
+        if (rank === 'A') return 14;
+        if (rank === 'K') return 13;
+        if (rank === 'Q') return 12;
+        if (rank === 'J') return 11;
+        return parseInt(rank);
+    }).sort((a, b) => a - b);
+    
+    const isStraight = rankValues.every((val, i) => i === 0 || val === rankValues[i-1] + 1);
+    
+    // Determine hand ranking
+    if (isFlush && isStraight && rankValues[0] === 10) return 'Royal Flush';
+    if (isFlush && isStraight) return 'Straight Flush';
+    if (counts[0] === 4) return 'Four of a Kind';
+    if (counts[0] === 3 && counts[1] === 2) return 'Full House';
+    if (isFlush) return 'Flush';
+    if (isStraight) return 'Straight';
+    if (counts[0] === 3) return 'Three of a Kind';
+    if (counts[0] === 2 && counts[1] === 2) return 'Two Pair';
+    if (counts[0] === 2) {
+        // Check if it's Jacks or Better
+        const pairRank = Object.keys(rankCounts).find(rank => rankCounts[rank] === 2);
+        if (['J', 'Q', 'K', 'A'].includes(pairRank)) return 'Jacks or Better';
+        return 'Low Pair';
+    }
+    return 'High Card';
+}
+
+function calculatePayout(handRank, bet) {
+    const payouts = {
+        'Royal Flush': 250,
+        'Straight Flush': 50,
+        'Four of a Kind': 25,
+        'Full House': 9,
+        'Flush': 6,
+        'Straight': 4,
+        'Three of a Kind': 3,
+        'Two Pair': 2,
+        'Jacks or Better': 1,
+        'Low Pair': 0,
+        'High Card': 0
+    };
+    
+    return bet * (payouts[handRank] || 0);
+}
+
+function updateHandRanking() {
+    const handRank = evaluateHand(playerHand);
+    document.getElementById('rankingValue').textContent = handRank;
+    document.getElementById('handRanking').style.display = 'block';
+}
+
+function showResult(won, handRank, payout, error = null) {
+    const resultDisplay = document.getElementById('resultDisplay');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultMessage = document.getElementById('resultMessage');
+    
+    if (error) {
+        resultTitle.textContent = '❌ Game Error';
+        resultTitle.style.color = '#dc3545';
+        resultMessage.textContent = error;
+    } else if (won && payout > 0) {
+        resultTitle.textContent = '🎉 You Won!';
+        resultTitle.style.color = '#28a745';
+        resultMessage.textContent = `${handRank} - Won $${payout.toFixed(2)}!`;
+    } else {
+        resultTitle.textContent = '😔 No Win';
+        resultTitle.style.color = '#6c757d';
+        resultMessage.textContent = `${handRank} - Better luck next time!`;
+    }
+    
+    resultDisplay.style.display = 'block';
+    resultDisplay.scrollIntoView({ behavior: 'smooth' });
+}
+
+function newGame() {
+    // Reset game state
+    currentBet = 0;
+    playerHand = [];
+    dealerHand = [];
+    heldCards = [];
+    gameState = 'betting';
+    
+    // Reset UI
+    document.getElementById('potAmount').textContent = '$0.00';
+    document.getElementById('playerCards').innerHTML = '';
+    document.getElementById('handRanking').style.display = 'none';
+    document.getElementById('resultDisplay').style.display = 'none';
+    document.getElementById('bettingControls').style.display = 'block';
+    document.getElementById('gameControls').style.display = 'none';
+    document.getElementById('dealBtn').disabled = true;
+    
+    // Clear selections
+    document.querySelectorAll('.bet-btn').forEach(btn => btn.classList.remove('selected'));
+    document.getElementById('customBet').value = '';
+}
+
+function updateBalanceDisplay(balance) {
+    const balanceElement = document.querySelector('.balance-amount');
+    if (balanceElement) {
+        balanceElement.textContent = `$${balance.toFixed(2)}`;
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    newGame();
+});
+</script>
+{% endblock %}

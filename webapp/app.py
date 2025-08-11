@@ -19,6 +19,14 @@ from webapp.sync_db import get_user, update_user_balance, record_transaction, re
 from src.utils.logger import webapp_logger
 from src.utils.validators import validator
 from src.utils.error_handler import GameError, InsufficientFundsError, InvalidBetError
+from src.games.blackjack import create_blackjack_game, hit_blackjack, stand_blackjack, get_game, set_game, clear_game
+from src.games.roulette import create_roulette_game, get_roulette_game, place_roulette_bet, spin_roulette, clear_roulette_game
+from src.games.crash import create_crash_game, get_crash_game, update_crash_game, cash_out_crash, clear_crash_game
+from src.games.mines import create_mines_game, get_mines_game, reveal_mines_tile, cash_out_mines, clear_mines_game
+from src.games.tower import create_tower_game, get_tower_game, choose_tower_tile, cash_out_tower, clear_tower_game
+from src.games.plinko import create_plinko_game, get_plinko_game, drop_plinko_ball, clear_plinko_game
+from src.games.poker import create_poker_game, get_poker_game, finish_poker_game, clear_poker_game
+from src.games.lottery import create_lottery_game, get_lottery_game, select_lottery_numbers, draw_lottery_numbers, clear_lottery_game
 
 app = Flask(__name__)
 CORS(app, origins="*", allow_headers="*", methods="*")
@@ -533,6 +541,830 @@ def process_game_logic(game_type, bet_amount, game_data):
             'winnings': 0,
             'message': f'Game error: {str(e)}'
         }
+
+# Blackjack specific endpoints
+@app.route('/api/blackjack/deal', methods=['POST'])
+def blackjack_deal():
+    """Deal new blackjack hand"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_amount = float(data.get('bet_amount'))
+        
+        if not all([user_id, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False, 
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Deduct bet amount
+        update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, "bet", "blackjack bet")
+        
+        # Create new game
+        game = create_blackjack_game(user_id, bet_amount)
+        set_game(user_id, game)
+        
+        # Get updated user data
+        updated_user = get_user(user_id)
+        
+        return jsonify({
+            'success': True,
+            'game': game.to_dict(),
+            'new_balance': updated_user['balance']
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/blackjack/hit', methods=['POST'])
+def blackjack_hit():
+    """Hit in blackjack game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        # Get active game
+        game = get_game(user_id)
+        if not game:
+            return jsonify({'success': False, 'error': 'No active game'}), 400
+        
+        # Hit
+        result = hit_blackjack(game)
+        
+        # If game is over, handle winnings
+        if game.game_over:
+            winnings = game.get_winnings()
+            
+            # Record game result
+            game_id = record_game(
+                user_id, "blackjack", game.bet_amount,
+                "win" if winnings > game.bet_amount else "loss" if winnings == 0 else "push",
+                winnings
+            )
+            
+            # Update balance with winnings
+            if winnings > 0:
+                update_user_balance(user_id, winnings)
+                record_transaction(user_id, winnings, "win", "blackjack win")
+            
+            # Clear game
+            clear_game(user_id)
+            
+            # Get updated user data
+            updated_user = get_user(user_id)
+            result['new_balance'] = updated_user['balance']
+        
+        return jsonify({
+            'success': True,
+            'game': result
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/blackjack/stand', methods=['POST'])
+def blackjack_stand():
+    """Stand in blackjack game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        # Get active game
+        game = get_game(user_id)
+        if not game:
+            return jsonify({'success': False, 'error': 'No active game'}), 400
+        
+        # Stand
+        result = stand_blackjack(game)
+        
+        # Handle winnings
+        winnings = game.get_winnings()
+        
+        # Record game result
+        game_id = record_game(
+            user_id, "blackjack", game.bet_amount,
+            "win" if winnings > game.bet_amount else "loss" if winnings == 0 else "push",
+            winnings
+        )
+        
+        # Update balance with winnings
+        if winnings > 0:
+            update_user_balance(user_id, winnings)
+            record_transaction(user_id, winnings, "win", "blackjack win")
+        
+        # Clear game
+        clear_game(user_id)
+        
+        # Get updated user data
+        updated_user = get_user(user_id)
+        result['new_balance'] = updated_user['balance']
+        
+        return jsonify({
+            'success': True,
+            'game': result
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== ROULETTE API ENDPOINTS ====================
+@app.route('/api/roulette/start', methods=['POST'])
+def roulette_start():
+    """Start a new roulette game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        # Create new game
+        game = create_roulette_game(user_id)
+        
+        return jsonify({
+            'success': True,
+            'game': game.get_game_state() if hasattr(game, 'get_game_state') else {
+                'bets': game.bets,
+                'total_bet': game.total_bet,
+                'game_over': game.game_over
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/roulette/bet', methods=['POST'])
+def roulette_bet():
+    """Place a bet in roulette"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_type = data.get('bet_type')
+        bet_amount = float(data.get('bet_amount'))
+        
+        if not all([user_id, bet_type, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False,
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Place bet
+        success = place_roulette_bet(user_id, bet_type, bet_amount)
+        if not success:
+            return jsonify({'success': False, 'error': 'Failed to place bet'}), 400
+        
+        # Deduct bet from balance
+        new_balance = update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, 'roulette_bet', f'Roulette bet: {bet_type}')
+        
+        game = get_roulette_game(user_id)
+        
+        return jsonify({
+            'success': True,
+            'game': {
+                'bets': game.bets,
+                'total_bet': game.total_bet,
+                'game_over': game.game_over
+            },
+            'new_balance': new_balance
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/roulette/spin', methods=['POST'])
+def roulette_spin():
+    """Spin the roulette wheel"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        # Spin wheel
+        winning_number = spin_roulette(user_id)
+        if winning_number is None:
+            return jsonify({'success': False, 'error': 'No active game'}), 400
+        
+        game = get_roulette_game(user_id)
+        
+        # Handle winnings
+        if game.winnings > 0:
+            new_balance = update_user_balance(user_id, game.winnings)
+            record_transaction(user_id, game.winnings, 'roulette_win', f'Roulette win: {game.winning_number}')
+            record_game(user_id, 'roulette', game.total_bet, game.winnings, 'win')
+        else:
+            user = get_user(user_id)
+            new_balance = user['balance']
+            record_game(user_id, 'roulette', game.total_bet, 0, 'lose')
+        
+        result = {
+            'success': True,
+            'game': {
+                'winning_number': game.winning_number,
+                'winning_color': game.winning_color,
+                'bets': game.bets,
+                'total_bet': game.total_bet,
+                'winnings': game.winnings,
+                'payout_details': game.payout_details,
+                'game_over': game.game_over,
+                'result': game.result
+            },
+            'new_balance': new_balance
+        }
+        
+        # Clear game
+        clear_roulette_game(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== CRASH API ENDPOINTS ====================
+@app.route('/api/crash/start', methods=['POST'])
+def crash_start():
+    """Start a new crash game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_amount = float(data.get('bet_amount'))
+        
+        if not all([user_id, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False,
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Deduct bet from balance
+        new_balance = update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, 'crash_bet', 'Crash game bet')
+        
+        # Create game
+        game = create_crash_game(user_id, bet_amount)
+        
+        return jsonify({
+            'success': True,
+            'game': {
+                'current_multiplier': game.current_multiplier,
+                'is_running': game.is_running,
+                'game_over': game.game_over,
+                'bet_amount': game.bet_amount
+            },
+            'new_balance': new_balance
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/crash/update', methods=['POST'])
+def crash_update():
+    """Update crash game state"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        game = update_crash_game(user_id)
+        if not game:
+            return jsonify({'success': False, 'error': 'No active game'}), 400
+        
+        return jsonify({
+            'success': True,
+            'game': {
+                'current_multiplier': game.current_multiplier,
+                'is_running': game.is_running,
+                'game_over': game.game_over,
+                'result': game.result,
+                'winnings': game.winnings,
+                'cashed_out': game.cashed_out
+            }
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/crash/cashout', methods=['POST'])
+def crash_cashout():
+    """Cash out from crash game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        success = cash_out_crash(user_id)
+        if not success:
+            return jsonify({'success': False, 'error': 'Cannot cash out'}), 400
+        
+        game = get_crash_game(user_id)
+        
+        # Handle winnings
+        if game.winnings > 0:
+            new_balance = update_user_balance(user_id, game.winnings)
+            record_transaction(user_id, game.winnings, 'crash_win', f'Crash win at {game.cash_out_multiplier:.2f}x')
+            record_game(user_id, 'crash', game.bet_amount, game.winnings, 'win')
+        else:
+            user = get_user(user_id)
+            new_balance = user['balance']
+            record_game(user_id, 'crash', game.bet_amount, 0, 'lose')
+        
+        result = {
+            'success': True,
+            'game': {
+                'current_multiplier': game.current_multiplier,
+                'cash_out_multiplier': game.cash_out_multiplier,
+                'winnings': game.winnings,
+                'game_over': game.game_over,
+                'result': game.result,
+                'cashed_out': game.cashed_out
+            },
+            'new_balance': new_balance
+        }
+        
+        # Clear game
+        clear_crash_game(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== MINES API ENDPOINTS ====================
+@app.route('/api/mines/start', methods=['POST'])
+def mines_start():
+    """Start a new mines game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_amount = float(data.get('bet_amount'))
+        mines_count = int(data.get('mines_count', 5))
+        
+        if not all([user_id, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False,
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Deduct bet from balance
+        new_balance = update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, 'mines_bet', 'Mines game bet')
+        
+        # Create game
+        game = create_mines_game(user_id, bet_amount, mines_count)
+        
+        return jsonify({
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/mines/reveal', methods=['POST'])
+def mines_reveal():
+    """Reveal a tile in mines game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        position = int(data.get('position'))
+        
+        if not all([user_id is not None, position is not None]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        result = reveal_mines_tile(user_id, position)
+        if result is None:
+            return jsonify({'success': False, 'error': 'No active game'}), 400
+        
+        game = get_mines_game(user_id)
+        
+        # If hit mine, record loss
+        if result.get('hit_mine'):
+            record_game(user_id, 'mines', game.bet_amount, 0, 'lose')
+            clear_mines_game(user_id)
+        
+        return jsonify({
+            'success': True,
+            'result': result,
+            'game': game.get_game_state()
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/mines/cashout', methods=['POST'])
+def mines_cashout():
+    """Cash out from mines game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        success = cash_out_mines(user_id)
+        if not success:
+            return jsonify({'success': False, 'error': 'Cannot cash out'}), 400
+        
+        game = get_mines_game(user_id)
+        
+        # Handle winnings
+        new_balance = update_user_balance(user_id, game.winnings)
+        record_transaction(user_id, game.winnings, 'mines_win', f'Mines cashout at {game.current_multiplier:.2f}x')
+        record_game(user_id, 'mines', game.bet_amount, game.winnings, 'win')
+        
+        result = {
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        }
+        
+        # Clear game
+        clear_mines_game(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== TOWER API ENDPOINTS ====================
+@app.route('/api/tower/start', methods=['POST'])
+def tower_start():
+    """Start a new tower game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_amount = float(data.get('bet_amount'))
+        
+        if not all([user_id, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False,
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Deduct bet from balance
+        new_balance = update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, 'tower_bet', 'Tower game bet')
+        
+        # Create game
+        game = create_tower_game(user_id, bet_amount)
+        
+        return jsonify({
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/tower/choose', methods=['POST'])
+def tower_choose():
+    """Choose a tile in tower game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        tile_index = int(data.get('tile_index'))
+        
+        if not all([user_id is not None, tile_index is not None]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        result = choose_tower_tile(user_id, tile_index)
+        if result is None:
+            return jsonify({'success': False, 'error': 'No active game'}), 400
+        
+        game = get_tower_game(user_id)
+        
+        # If hit trap or completed tower, handle winnings
+        if game.game_over:
+            if game.result == 'trap':
+                record_game(user_id, 'tower', game.bet_amount, 0, 'lose')
+            elif game.result == 'completed':
+                new_balance = update_user_balance(user_id, game.winnings)
+                record_transaction(user_id, game.winnings, 'tower_win', f'Tower completed at level {game.current_level}')
+                record_game(user_id, 'tower', game.bet_amount, game.winnings, 'win')
+                result['new_balance'] = new_balance
+            
+            clear_tower_game(user_id)
+        
+        return jsonify({
+            'success': True,
+            'result': result,
+            'game': game.get_game_state()
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/tower/cashout', methods=['POST'])
+def tower_cashout():
+    """Cash out from tower game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        success = cash_out_tower(user_id)
+        if not success:
+            return jsonify({'success': False, 'error': 'Cannot cash out'}), 400
+        
+        game = get_tower_game(user_id)
+        
+        # Handle winnings
+        new_balance = update_user_balance(user_id, game.winnings)
+        record_transaction(user_id, game.winnings, 'tower_win', f'Tower cashout at level {game.current_level}')
+        record_game(user_id, 'tower', game.bet_amount, game.winnings, 'win')
+        
+        result = {
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        }
+        
+        # Clear game
+        clear_tower_game(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== PLINKO API ENDPOINTS ====================
+@app.route('/api/plinko/drop', methods=['POST'])
+def plinko_drop():
+    """Drop a ball in plinko game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_amount = float(data.get('bet_amount'))
+        risk_level = data.get('risk_level', 'medium')
+        
+        if not all([user_id, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False,
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Deduct bet from balance
+        new_balance = update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, 'plinko_bet', 'Plinko game bet')
+        
+        # Create game and drop ball
+        game = create_plinko_game(user_id, bet_amount, risk_level)
+        result = drop_plinko_ball(user_id)
+        
+        # Handle winnings
+        if game.winnings > 0:
+            new_balance = update_user_balance(user_id, game.winnings)
+            record_transaction(user_id, game.winnings, 'plinko_win', f'Plinko win: {result["multiplier"]}x')
+            record_game(user_id, 'plinko', game.bet_amount, game.winnings, 'win')
+        else:
+            record_game(user_id, 'plinko', game.bet_amount, 0, 'lose')
+        
+        response = {
+            'success': True,
+            'result': result,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        }
+        
+        # Clear game
+        clear_plinko_game(user_id)
+        
+        return jsonify(response)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== POKER API ENDPOINTS ====================
+@app.route('/api/poker/start', methods=['POST'])
+def poker_start():
+    """Start a new poker game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_amount = float(data.get('bet_amount'))
+        
+        if not all([user_id, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False,
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Deduct bet from balance
+        new_balance = update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, 'poker_bet', 'Poker game bet')
+        
+        # Create game
+        game = create_poker_game(user_id, bet_amount)
+        
+        return jsonify({
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/poker/finish', methods=['POST'])
+def poker_finish():
+    """Finish poker game and determine winner"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        success = finish_poker_game(user_id)
+        if not success:
+            return jsonify({'success': False, 'error': 'No active game'}), 400
+        
+        game = get_poker_game(user_id)
+        
+        # Handle winnings
+        if game.winnings > 0:
+            new_balance = update_user_balance(user_id, game.winnings)
+            record_transaction(user_id, game.winnings, 'poker_win', f'Poker win: {game.player_hand_rank[1]}')
+            record_game(user_id, 'poker', game.bet_amount, game.winnings, game.result)
+        else:
+            user = get_user(user_id)
+            new_balance = user['balance']
+            record_game(user_id, 'poker', game.bet_amount, 0, game.result)
+        
+        result = {
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        }
+        
+        # Clear game
+        clear_poker_game(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+# ==================== LOTTERY API ENDPOINTS ====================
+@app.route('/api/lottery/start', methods=['POST'])
+def lottery_start():
+    """Start a new lottery game"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        bet_amount = float(data.get('bet_amount'))
+        
+        if not all([user_id, bet_amount]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        # Get user and check balance
+        user = get_user(user_id)
+        if user['balance'] < bet_amount:
+            return jsonify({
+                'success': False,
+                'error': 'Insufficient balance',
+                'balance': user['balance']
+            }), 400
+        
+        # Deduct bet from balance
+        new_balance = update_user_balance(user_id, -bet_amount)
+        record_transaction(user_id, -bet_amount, 'lottery_bet', 'Lottery ticket purchase')
+        
+        # Create game
+        game = create_lottery_game(user_id, bet_amount)
+        
+        return jsonify({
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/lottery/select', methods=['POST'])
+def lottery_select():
+    """Select lottery numbers"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        numbers = data.get('numbers')
+        
+        if not all([user_id, numbers]):
+            return jsonify({'success': False, 'error': 'Missing required fields'}), 400
+        
+        success = select_lottery_numbers(user_id, numbers)
+        if not success:
+            return jsonify({'success': False, 'error': 'Invalid number selection'}), 400
+        
+        game = get_lottery_game(user_id)
+        
+        return jsonify({
+            'success': True,
+            'game': game.get_game_state()
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/lottery/draw', methods=['POST'])
+def lottery_draw():
+    """Draw winning lottery numbers"""
+    try:
+        data = request.get_json()
+        user_id = data.get('user_id')
+        
+        if not user_id:
+            return jsonify({'success': False, 'error': 'Missing user_id'}), 400
+        
+        success = draw_lottery_numbers(user_id)
+        if not success:
+            return jsonify({'success': False, 'error': 'No active game or numbers not selected'}), 400
+        
+        game = get_lottery_game(user_id)
+        
+        # Handle winnings
+        if game.winnings > 0:
+            new_balance = update_user_balance(user_id, game.winnings)
+            record_transaction(user_id, game.winnings, 'lottery_win', f'Lottery win: {game.matches} matches')
+            record_game(user_id, 'lottery', game.bet_amount, game.winnings, 'win')
+        else:
+            user = get_user(user_id)
+            new_balance = user['balance']
+            record_game(user_id, 'lottery', game.bet_amount, 0, 'lose')
+        
+        result = {
+            'success': True,
+            'game': game.get_game_state(),
+            'new_balance': new_balance
+        }
+        
+        # Clear game
+        clear_lottery_game(user_id)
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @app.route('/static/<path:filename>')
 def static_files(filename):
