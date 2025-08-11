@@ -20,7 +20,7 @@ from src.utils.rate_limiter import rate_limiter
 from src.utils.validators import validator
 
 # Import modules
-from src.games.coinflip import coinflip_callback
+from src.games.coinflip_animated import coinflip_callback
 
 # Telegram Animated Games (use native Telegram animations)
 from src.games.dice_animated import dice_callback
@@ -34,15 +34,7 @@ from src.games.bowling_animated import bowling_callback
 # from src.games.darts import darts_message_handler
 # from src.games.bowling import bowling_message_handler
 
-# Web App Games (complex interactive games)
-from src.games.roulette import roulette_callback
-from src.games.blackjack import blackjack_callback
-from src.games.crash import crash_callback
-from src.games.lottery import lottery_callback
-from src.games.poker import poker_callback
-from src.games.plinko import plinko_callback, plinko_message_handler
-from src.games.mines import mines_callback, mines_message_handler
-from src.games.tower import tower_callback, tower_message_handler
+# Web App Games (complex interactive games) - no Telegram callbacks needed
 from src.games.wheel_animated import wheel_callback
 from src.wallet import (
     wallet_command,
@@ -229,23 +221,7 @@ async def handle_message(update: Update, context):
             if await withdrawal_system.process_withdrawal_address(update, context):
                 return
     
-    if await plinko_message_handler(update, context):
-        return
-    
-    # if await darts_message_handler(update, context):
-        # return
-    
-    # if await bowling_message_handler(update, context):
-        # return
-    
-    if await mines_message_handler(update, context):
-        return
-    
-    if await tower_message_handler(update, context):
-        return
-    
-    # if await wheel_message_handler(update, context):
-        # return
+    # Webapp games are handled through the web interface, not Telegram messages
     
     # Default response for other messages
     await update.message.reply_text(
@@ -389,16 +365,10 @@ def main():
     application.add_handler(CallbackQueryHandler(football_callback, pattern="^football_"))
     application.add_handler(CallbackQueryHandler(bowling_callback, pattern="^bowling_"))
     
-    # Web App Games
+    # Animated Games (Telegram native)
     application.add_handler(CallbackQueryHandler(coinflip_callback, pattern="^coinflip_"))
-    application.add_handler(CallbackQueryHandler(roulette_callback, pattern="^roulette_"))
-    application.add_handler(CallbackQueryHandler(blackjack_callback, pattern="^blackjack_"))
-    application.add_handler(CallbackQueryHandler(crash_callback, pattern="^crash_"))
-    application.add_handler(CallbackQueryHandler(lottery_callback, pattern="^lottery_"))
-    application.add_handler(CallbackQueryHandler(poker_callback, pattern="^poker_"))
-    application.add_handler(CallbackQueryHandler(plinko_callback, pattern="^plinko_"))
-    application.add_handler(CallbackQueryHandler(mines_callback, pattern="^mines_"))
-    application.add_handler(CallbackQueryHandler(tower_callback, pattern="^tower_"))
+    
+    # Web App Games - handled through webapp, no Telegram callbacks needed
     application.add_handler(CallbackQueryHandler(wheel_callback, pattern="^wheel_"))
     application.add_handler(CallbackQueryHandler(wallet_callback, pattern="^wallet_"))
     application.add_handler(CallbackQueryHandler(crypto_callback, pattern="^crypto_"))

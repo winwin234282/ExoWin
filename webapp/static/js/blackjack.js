@@ -50,7 +50,7 @@ class BlackjackGame {
             const response = await this.makeGameRequest('deal', { bet_amount: betAmount });
             
             if (response.success) {
-                this.gameState = response.result;
+                this.gameState = response.game;
                 this.updateDisplay();
                 this.balanceSpan.textContent = response.new_balance;
 
@@ -80,9 +80,11 @@ class BlackjackGame {
             const response = await this.makeGameRequest('hit');
             
             if (response.success) {
-                this.gameState = response.result;
+                this.gameState = response.game;
                 this.updateDisplay();
-                this.balanceSpan.textContent = response.new_balance;
+                if (response.new_balance !== undefined) {
+                    this.balanceSpan.textContent = response.new_balance;
+                }
 
                 if (this.gameState.game_over) {
                     this.endGame();
@@ -102,7 +104,7 @@ class BlackjackGame {
             const response = await this.makeGameRequest('stand');
             
             if (response.success) {
-                this.gameState = response.result;
+                this.gameState = response.game;
                 this.updateDisplay();
                 this.balanceSpan.textContent = response.new_balance;
                 this.endGame();
@@ -135,21 +137,43 @@ class BlackjackGame {
     }
 
     async makeGameRequest(action, extraData = {}) {
-        const response = await fetch('/api/game/bet', {
+        let endpoint = '/api/game/bet';
+        let requestData = {
+            user_id: getUserId(),
+            game_type: 'blackjack',
+            bet_amount: this.currentBet,
+            game_data: {
+                action: action,
+                game_state: this.gameState,
+                ...extraData
+            }
+        };
+
+        // Use specific blackjack endpoints for better handling
+        if (action === 'deal') {
+            endpoint = '/api/blackjack/deal';
+            requestData = {
+                user_id: getUserId(),
+                bet_amount: this.currentBet
+            };
+        } else if (action === 'hit') {
+            endpoint = '/api/blackjack/hit';
+            requestData = {
+                user_id: getUserId()
+            };
+        } else if (action === 'stand') {
+            endpoint = '/api/blackjack/stand';
+            requestData = {
+                user_id: getUserId()
+            };
+        }
+
+        const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify({
-                user_id: getUserId(),
-                game_type: 'blackjack',
-                bet_amount: this.currentBet,
-                game_data: {
-                    action: action,
-                    game_state: this.gameState,
-                    ...extraData
-                }
-            })
+            body: JSON.stringify(requestData)
         });
         
         return await response.json();
@@ -157,52 +181,63 @@ class BlackjackGame {
 
     updateDisplay() {
         // Display player cards
-        this.displayCards(this.gameState.player_cards, this.playerCardsDiv);
-        this.playerTotalDiv.textContent = `Total: ${this.gameState.player_total}`;
+        this.displayCards(this.gameState.player_hand, this.playerCardsDiv);
+        this.playerTotalDiv.textContent = `Total: ${this.gameState.player_value}`;
 
         // Display dealer cards
         if (this.gameState.game_over) {
-            this.displayCards(this.gameState.dealer_cards, this.dealerCardsDiv, true);
-            this.dealerTotalDiv.textContent = `Total: ${this.gameState.dealer_total}`;
+            this.displayCards(this.gameState.dealer_hand, this.dealerCardsDiv, true);
+            this.dealerTotalDiv.textContent = `Total: ${this.gameState.dealer_value}`;
             this.dealerTotalDiv.style.display = 'block';
         } else {
-            this.displayCards(this.gameState.dealer_cards, this.dealerCardsDiv, false);
+            this.displayCards(this.gameState.dealer_hand, this.dealerCardsDiv, false);
             this.dealerTotalDiv.style.display = 'none';
         }
 
         // Update game status
-        this.gameStatus.textContent = this.gameState.message;
-        this.gameStatus.className = `game-status ${this.gameState.outcome || 'playing'}`;
+        let message = '';
+        if (this.gameState.result) {
+            if (this.gameState.result === 'blackjack') {
+                message = '🃏 BLACKJACK!';
+            } else if (this.gameState.result === 'bust') {
+                message = '💥 BUST!';
+            } else if (this.gameState.result === 'player_win') {
+                message = '🎉 You Win!';
+            } else if (this.gameState.result === 'dealer_win') {
+                message = '😔 Dealer Wins';
+            } else if (this.gameState.result === 'push') {
+                message = '🤝 Push (Tie)';
+            } else if (this.gameState.result === 'dealer_bust') {
+                message = '🎉 Dealer Busts - You Win!';
+            }
+        } else {
+            message = 'Your turn - Hit or Stand?';
+        }
+        
+        this.gameStatus.textContent = message;
+        this.gameStatus.className = `game-status ${this.gameState.result || 'playing'}`;
         this.gameStatus.style.display = 'block';
     }
 
     displayCards(cards, container, showAll = true) {
         container.innerHTML = '';
-        cards.forEach((cardValue, index) => {
+        cards.forEach((card, index) => {
             if (!showAll && index === 1) {
                 container.appendChild(this.createCardBack());
             } else {
-                const suits = ['♠️', '♥️', '♦️', '♣️'];
-                const suit = suits[Math.floor(Math.random() * suits.length)];
-                container.appendChild(this.createCard(cardValue, suit));
+                container.appendChild(this.createCard(card.rank, card.suit));
             }
         });
     }
 
-    createCard(value, suit = '♠️') {
+    createCard(rank, suit = '♠️') {
         const card = document.createElement('div');
         card.className = 'card';
         if (suit === '♥️' || suit === '♦️') {
             card.classList.add('red');
         }
         
-        let displayValue = value;
-        if (value === 11) displayValue = 'J';
-        else if (value === 12) displayValue = 'Q';
-        else if (value === 13) displayValue = 'K';
-        else if (value === 1) displayValue = 'A';
-        
-        card.innerHTML = `${displayValue}<br>${suit}`;
+        card.innerHTML = `${rank}<br>${suit}`;
         return card;
     }
 
@@ -221,21 +256,24 @@ class BlackjackGame {
         
         if (this.gameState.winnings > 0) {
             // Check for blackjack
-            if (this.gameState.player_total === 21 && this.gameState.player_cards.length === 2) {
+            if (this.gameState.result === 'blackjack') {
                 window.gambleAPI.playSound('blackjack', 0.6);
-                this.showMessage(`🃏 BLACKJACK! You won ${this.gameState.winnings} coins!`, 'success');
+                this.showMessage(`🃏 BLACKJACK! You won $${this.gameState.winnings.toFixed(2)}!`, 'success');
+            } else if (this.gameState.result === 'push') {
+                window.gambleAPI.playSound('win', 0.3);
+                this.showMessage(`🤝 PUSH! Your bet of $${this.currentBet.toFixed(2)} was returned`, 'info');
             } else {
                 window.gambleAPI.playSound('win', 0.5);
-                this.showMessage(`🎉 You won ${this.gameState.winnings} coins!`, 'success');
+                this.showMessage(`🎉 You won $${this.gameState.winnings.toFixed(2)}!`, 'success');
             }
         } else {
             // Check for bust
-            if (this.gameState.player_total > 21) {
+            if (this.gameState.result === 'bust') {
                 window.gambleAPI.playSound('bust', 0.5);
-                this.showMessage(`💥 BUST! You lost ${this.currentBet} coins`, 'error');
+                this.showMessage(`💥 BUST! You lost $${this.currentBet.toFixed(2)}`, 'error');
             } else {
                 window.gambleAPI.playSound('lose', 0.5);
-                this.showMessage(`💸 You lost ${this.currentBet} coins`, 'error');
+                this.showMessage(`💸 You lost $${this.currentBet.toFixed(2)}`, 'error');
             }
         }
     }
