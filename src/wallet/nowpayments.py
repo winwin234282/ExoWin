@@ -24,8 +24,9 @@ if not NOWPAYMENTS_API_KEY:
 
 # Supported cryptocurrencies for our bot (based on NOWPayments API)
 SUPPORTED_CRYPTOS = [
-    "BTC", "ETH", "USDT", "SOL", "LTC", "USDC", "BNB", "XRP", 
-    "ADA", "DOGE", "SHIB", "MATIC", "TRX", "DOT", "AVAX", "DAI"
+    "BTC", "ETH", "USDT", "USDC", "LTC", "SOL", "BNB", "TRX", 
+    "XMR", "DAI", "DOGE", "SHIB", "BCH", "MATIC", "TON", "NOT",
+    "XRP", "ADA", "DOT", "AVAX"  # Additional supported cryptos
 ]
 
 class NOWPaymentsAPI:
@@ -100,7 +101,7 @@ class NOWPaymentsAPI:
             payload = {
                 "price_amount": price_amount,
                 "price_currency": price_currency,
-                "ipn_callback_url": os.getenv("NOWPAYMENTS_IPN_URL", "https://your-callback-url.com/ipn"),
+                "ipn_callback_url": os.getenv("NOWPAYMENTS_IPN_URL", f"{os.getenv('WEBHOOK_URL', 'https://your-domain.com')}/webhook/nowpayments"),
                 "order_id": order_id or f"order_{datetime.now().timestamp()}",
                 "order_description": order_description or "Deposit to Gamble Bot"
             }
@@ -187,7 +188,7 @@ class NOWPaymentsAPI:
             payload = {
                 "price_amount": price_amount,
                 "price_currency": price_currency,
-                "ipn_callback_url": os.getenv("NOWPAYMENTS_IPN_URL", "https://your-callback-url.com/ipn"),
+                "ipn_callback_url": os.getenv("NOWPAYMENTS_IPN_URL", f"{os.getenv('WEBHOOK_URL', 'https://your-domain.com')}/webhook/nowpayments"),
                 "order_id": order_id or f"order_{datetime.now().timestamp()}",
                 "order_description": order_description or "Deposit to Gamble Bot"
             }
