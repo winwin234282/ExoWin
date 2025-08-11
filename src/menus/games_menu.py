@@ -128,12 +128,12 @@ async def show_webapp_games_menu(update: Update, context: ContextTypes.DEFAULT_T
             InlineKeyboardButton("🏗️ Tower", callback_data="webapp_tower")
         ],
         [
-            InlineKeyboardButton("🎡 Wheel", callback_data="webapp_wheel"),
-            InlineKeyboardButton("🚀 Crash", callback_data="webapp_crash")
+            InlineKeyboardButton("🚀 Crash", callback_data="webapp_crash"),
+            InlineKeyboardButton("🟡 Plinko", callback_data="webapp_plinko")
         ],
         [
-            InlineKeyboardButton("🟡 Plinko", callback_data="webapp_plinko"),
-            InlineKeyboardButton("🪙 Coinflip", callback_data="webapp_coinflip")
+            InlineKeyboardButton("🃏 Poker", callback_data="webapp_poker"),
+            InlineKeyboardButton("🎰 Lottery", callback_data="webapp_lottery")
         ],
         [
             InlineKeyboardButton("🔙 Back to Games", callback_data="menu_games")
@@ -185,19 +185,19 @@ async def games_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         elif game_type == "tower":
             await show_tower_webapp(update, context)
         elif game_type == "wheel":
-            await show_wheel_webapp(update, context)
+            from src.games.wheel_animated import wheel_command
+            await wheel_command(update, context)
         elif game_type == "crash":
             await show_crash_webapp(update, context)
         elif game_type == "plinko":
             await show_plinko_webapp(update, context)
         elif game_type == "coinflip":
-            await show_coinflip_betting_menu(update, context)
+            from src.games.coinflip_animated import coinflip_command
+            await coinflip_command(update, context)
         elif game_type == "lottery":
-            # from src.games.lottery import lottery_command
-            await show_lottery_betting_menu(update, context)
+            await show_lottery_webapp(update, context)
         elif game_type == "poker":
-            # from src.games.poker import poker_command
-            await show_poker_betting_menu(update, context)
+            await show_poker_webapp(update, context)
     
     # Legacy support for old callback patterns
     elif category == "games":
@@ -242,13 +242,15 @@ async def games_menu_callback(update: Update, context: ContextTypes.DEFAULT_TYPE
         elif game_type == "tower":
             await show_tower_webapp(update, context)
         elif game_type == "wheel":
-            await show_wheel_webapp(update, context)
+            from src.games.wheel_animated import wheel_command
+            await wheel_command(update, context)
         elif game_type == "crash":
             await show_crash_webapp(update, context)
         elif game_type == "plinko":
             await show_plinko_webapp(update, context)
         elif game_type == "coinflip":
-            await show_coinflip_betting_menu(update, context)
+            from src.games.coinflip_animated import coinflip_command
+            await coinflip_command(update, context)
 
 async def show_tournaments_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show tournaments menu"""
@@ -401,35 +403,7 @@ async def show_tower_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
-async def show_wheel_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show Wheel web app"""
-    user_id = update.callback_query.from_user.id
-    user = await get_user(user_id)
-    
-    message = (
-        f"🎡 **WHEEL OF FORTUNE** 🎡\n\n"
-        f"💰 Balance: {format_money(user['balance'])}\n\n"
-        f"Spin the wheel and bet on segments!\n"
-        f"Different colors have different multipliers.\n\n"
-        f"🎮 **Interactive Web App**\n"
-        f"• Visual spinning wheel\n"
-        f"• Multiple betting options\n"
-        f"• Real-time animations"
-    )
-    
-    web_app_url = f"{WEBAPP_URL}/games/wheel?user_id={user_id}"
-    
-    keyboard = [
-        [
-            InlineKeyboardButton("🎮 Play Wheel", web_app=WebAppInfo(url=web_app_url))
-        ],
-        [
-            InlineKeyboardButton("🔙 Back", callback_data="games_webapp")
-        ]
-    ]
-    
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
 
 async def show_crash_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show Crash web app"""
@@ -491,30 +465,61 @@ async def show_plinko_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE)
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
-async def show_coinflip_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Show Coinflip web app"""
+
+async def show_lottery_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show Lottery web app"""
     user_id = update.callback_query.from_user.id
     user = await get_user(user_id)
     
     message = (
-        f"🪙 **COINFLIP** 🪙\n\n"
+        f"🎰 **LOTTERY** 🎰\n\n"
         f"💰 Balance: {format_money(user['balance'])}\n\n"
-        f"Call heads or tails!\n"
-        f"Simple 50/50 chance to double your money.\n\n"
+        f"Buy lottery tickets and win big!\n"
+        f"Multiple draws throughout the day.\n\n"
         f"🎮 **Interactive Web App**\n"
-        f"• Visual coin flipping\n"
-        f"• Smooth animations\n"
-        f"• Quick betting interface"
+        f"• Visual ticket selection\n"
+        f"• Live draw animations\n"
+        f"• Jackpot tracking"
     )
     
-    web_app_url = f"{WEBAPP_URL}/games/coinflip?user_id={user_id}"
+    web_app_url = f"{WEBAPP_URL}/games/lottery?user_id={user_id}"
     
     keyboard = [
         [
-            InlineKeyboardButton("🎮 Play Coinflip", web_app=WebAppInfo(url=web_app_url))
+            InlineKeyboardButton("🎮 Play Lottery", web_app=WebAppInfo(url=web_app_url))
         ],
         [
-            InlineKeyboardButton("🔙 Back", callback_data="games_webapp")
+            InlineKeyboardButton("🔙 Back", callback_data="menu_games")
+        ]
+    ]
+    
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
+
+async def show_poker_webapp(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show Poker web app"""
+    user_id = update.callback_query.from_user.id
+    user = await get_user(user_id)
+    
+    message = (
+        f"🃏 **POKER** 🃏\n\n"
+        f"💰 Balance: {format_money(user['balance'])}\n\n"
+        f"Five Card Draw Poker!\n"
+        f"Get the best hand to beat the house.\n\n"
+        f"🎮 **Interactive Web App**\n"
+        f"• Visual card dealing\n"
+        f"• Interactive card selection\n"
+        f"• Hand ranking display"
+    )
+    
+    web_app_url = f"{WEBAPP_URL}/games/poker?user_id={user_id}"
+    
+    keyboard = [
+        [
+            InlineKeyboardButton("🎮 Play Poker", web_app=WebAppInfo(url=web_app_url))
+        ],
+        [
+            InlineKeyboardButton("🔙 Back", callback_data="menu_games")
         ]
     ]
     
@@ -613,7 +618,7 @@ async def show_lottery_betting_menu(update: Update, context: ContextTypes.DEFAUL
 
     message = (
         f"🎰 **LOTTERY** 🎰\n\n"
-        f"💰 Balance: {format_money(user[balance])}\n\n"
+        f"💰 Balance: {format_money(user['balance'])}\n\n"
         f"🎫 Ticket Price: $5.00\n"
         f"🏆 Current Pot: $500.00\n"
         f"⏰ Draw in: 2 hours\n\n"
@@ -637,7 +642,7 @@ async def show_lottery_betting_menu(update: Update, context: ContextTypes.DEFAUL
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode=Markdown)
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def show_poker_betting_menu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Show poker betting menu"""
@@ -646,7 +651,7 @@ async def show_poker_betting_menu(update: Update, context: ContextTypes.DEFAULT_
 
     message = (
         f"🃏 **POKER** 🃏\n\n"
-        f"💰 Balance: {format_money(user[balance])}\n\n"
+        f"💰 Balance: {format_money(user['balance'])}\n\n"
         f"🎯 Five Card Draw Poker\n"
         f"Get the best hand to win!\n\n"
         f"💡 **How to Play:**\n"
@@ -672,4 +677,4 @@ async def show_poker_betting_menu(update: Update, context: ContextTypes.DEFAULT_
     ]
 
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode=Markdown)
+    await update.callback_query.edit_message_text(message, reply_markup=reply_markup, parse_mode='Markdown')

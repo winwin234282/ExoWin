@@ -1,0 +1,433 @@
+{% extends "base.html" %}
+
+{% block title %}Lottery - Gamble Bot{% endblock %}
+{% block game_title %}🎰 Lottery{% endblock %}
+
+{% block extra_css %}
+<style>
+.game-area {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.lottery-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    color: white;
+    text-align: center;
+}
+
+.jackpot-amount {
+    font-size: 2.5em;
+    font-weight: bold;
+    margin: 10px 0;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.lottery-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.stat-card {
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 15px;
+    text-align: center;
+}
+
+.ticket-selection {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.ticket-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.ticket-btn {
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    border: none;
+    border-radius: 10px;
+    padding: 15px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.ticket-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.ticket-btn.selected {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    transform: scale(1.05);
+}
+
+.custom-ticket {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.custom-ticket input {
+    flex: 1;
+    padding: 10px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.purchase-section {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.purchase-summary {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 15px;
+    margin: 15px 0;
+}
+
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+}
+
+.summary-total {
+    font-weight: bold;
+    font-size: 1.2em;
+    border-top: 2px solid #ddd;
+    padding-top: 10px;
+    margin-top: 10px;
+}
+
+.btn {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.btn-primary:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.result-display {
+    background: white;
+    border-radius: 15px;
+    padding: 20px;
+    margin-top: 20px;
+    text-align: center;
+    display: none;
+}
+
+.winning-numbers {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.number-ball {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-area">
+    <!-- Lottery Information -->
+    <div class="lottery-info">
+        <h2>🎰 MEGA LOTTERY 🎰</h2>
+        <div class="jackpot-amount" id="jackpotAmount">$10,000</div>
+        <p>Next Draw: <span id="nextDraw">In 2 hours</span></p>
+        
+        <div class="lottery-stats">
+            <div class="stat-card">
+                <div class="stat-value" id="ticketsSold">1,234</div>
+                <div class="stat-label">Tickets Sold</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">$5.00</div>
+                <div class="stat-label">Per Ticket</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="yourTickets">0</div>
+                <div class="stat-label">Your Tickets</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Ticket Selection -->
+    <div class="ticket-selection">
+        <h3>🎫 Buy Lottery Tickets</h3>
+        <p>Choose how many tickets you want to purchase:</p>
+        
+        <div class="ticket-options">
+            <button class="ticket-btn" onclick="selectTickets(1)">
+                <div>1 Ticket</div>
+                <div>$5.00</div>
+            </button>
+            <button class="ticket-btn" onclick="selectTickets(5)">
+                <div>5 Tickets</div>
+                <div>$25.00</div>
+            </button>
+            <button class="ticket-btn" onclick="selectTickets(10)">
+                <div>10 Tickets</div>
+                <div>$50.00</div>
+            </button>
+            <button class="ticket-btn" onclick="selectTickets(20)">
+                <div>20 Tickets</div>
+                <div>$100.00</div>
+            </button>
+        </div>
+        
+        <div class="custom-ticket">
+            <label>Custom Amount:</label>
+            <input type="number" id="customTickets" min="1" max="100" placeholder="Enter number of tickets">
+            <button class="btn btn-primary" onclick="selectCustomTickets()">Select</button>
+        </div>
+    </div>
+    
+    <!-- Purchase Section -->
+    <div class="purchase-section">
+        <h3>Purchase Summary</h3>
+        <div class="purchase-summary">
+            <div class="summary-row">
+                <span>Tickets:</span>
+                <span id="selectedTickets">0</span>
+            </div>
+            <div class="summary-row">
+                <span>Price per ticket:</span>
+                <span>$5.00</span>
+            </div>
+            <div class="summary-row summary-total">
+                <span>Total Cost:</span>
+                <span id="totalCost">$0.00</span>
+            </div>
+        </div>
+        
+        <button class="btn btn-primary" id="purchaseBtn" onclick="purchaseTickets()" disabled>
+            🎫 Purchase Tickets
+        </button>
+    </div>
+    
+    <!-- Result Display -->
+    <div class="result-display" id="resultDisplay">
+        <h3 id="resultTitle">🎉 Tickets Purchased!</h3>
+        <p id="resultMessage">Good luck in the next draw!</p>
+        <div class="winning-numbers" id="winningNumbers" style="display: none;">
+            <!-- Winning numbers will be displayed here -->
+        </div>
+        <button class="btn btn-primary" onclick="resetGame()">Buy More Tickets</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let selectedTicketCount = 0;
+let ticketPrice = 5.00;
+let userBalance = {{ user.balance }};
+let userId = {{ user_id }};
+
+function selectTickets(count) {
+    selectedTicketCount = count;
+    updatePurchaseSummary();
+    
+    // Update button states
+    document.querySelectorAll('.ticket-btn').forEach(btn => btn.classList.remove('selected'));
+    event.target.closest('.ticket-btn').classList.add('selected');
+    
+    // Clear custom input
+    document.getElementById('customTickets').value = '';
+}
+
+function selectCustomTickets() {
+    const customInput = document.getElementById('customTickets');
+    const count = parseInt(customInput.value);
+    
+    if (count && count > 0 && count <= 100) {
+        selectedTicketCount = count;
+        updatePurchaseSummary();
+        
+        // Clear other selections
+        document.querySelectorAll('.ticket-btn').forEach(btn => btn.classList.remove('selected'));
+    } else {
+        alert('Please enter a valid number of tickets (1-100)');
+    }
+}
+
+function updatePurchaseSummary() {
+    const totalCost = selectedTicketCount * ticketPrice;
+    
+    document.getElementById('selectedTickets').textContent = selectedTicketCount;
+    document.getElementById('totalCost').textContent = `$${totalCost.toFixed(2)}`;
+    
+    const purchaseBtn = document.getElementById('purchaseBtn');
+    if (selectedTicketCount > 0 && totalCost <= userBalance) {
+        purchaseBtn.disabled = false;
+    } else {
+        purchaseBtn.disabled = true;
+    }
+}
+
+async function purchaseTickets() {
+    if (selectedTicketCount === 0) {
+        alert('Please select tickets to purchase');
+        return;
+    }
+    
+    const totalCost = selectedTicketCount * ticketPrice;
+    
+    if (totalCost > userBalance) {
+        alert('Insufficient balance');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/game/bet', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                user_id: userId,
+                game_type: 'lottery',
+                bet_amount: totalCost,
+                game_data: {
+                    tickets: selectedTicketCount
+                }
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Update balance
+            userBalance = result.new_balance;
+            updateBalanceDisplay(userBalance);
+            
+            // Update your tickets count
+            const currentTickets = parseInt(document.getElementById('yourTickets').textContent);
+            document.getElementById('yourTickets').textContent = currentTickets + selectedTicketCount;
+            
+            // Show result
+            showResult(true, `You purchased ${selectedTicketCount} tickets for $${totalCost.toFixed(2)}!`);
+        } else {
+            showResult(false, result.error || 'Purchase failed');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showResult(false, 'Network error occurred');
+    }
+}
+
+function showResult(success, message) {
+    const resultDisplay = document.getElementById('resultDisplay');
+    const resultTitle = document.getElementById('resultTitle');
+    const resultMessage = document.getElementById('resultMessage');
+    
+    if (success) {
+        resultTitle.textContent = '🎉 Tickets Purchased!';
+        resultTitle.style.color = '#28a745';
+    } else {
+        resultTitle.textContent = '❌ Purchase Failed';
+        resultTitle.style.color = '#dc3545';
+    }
+    
+    resultMessage.textContent = message;
+    resultDisplay.style.display = 'block';
+    
+    // Scroll to result
+    resultDisplay.scrollIntoView({ behavior: 'smooth' });
+}
+
+function resetGame() {
+    selectedTicketCount = 0;
+    updatePurchaseSummary();
+    
+    // Clear selections
+    document.querySelectorAll('.ticket-btn').forEach(btn => btn.classList.remove('selected'));
+    document.getElementById('customTickets').value = '';
+    
+    // Hide result
+    document.getElementById('resultDisplay').style.display = 'none';
+}
+
+function updateBalanceDisplay(balance) {
+    // Update balance in header if it exists
+    const balanceElement = document.querySelector('.balance-amount');
+    if (balanceElement) {
+        balanceElement.textContent = `$${balance.toFixed(2)}`;
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    updatePurchaseSummary();
+    
+    // Simulate live updates (in a real app, this would come from server)
+    setInterval(function() {
+        // Update jackpot amount (simulate growth)
+        const jackpotElement = document.getElementById('jackpotAmount');
+        let currentJackpot = parseFloat(jackpotElement.textContent.replace('$', '').replace(',', ''));
+        currentJackpot += Math.random() * 10;
+        jackpotElement.textContent = `$${currentJackpot.toLocaleString('en-US', {maximumFractionDigits: 0})}`;
+        
+        // Update tickets sold
+        const ticketsSoldElement = document.getElementById('ticketsSold');
+        let currentSold = parseInt(ticketsSoldElement.textContent.replace(',', ''));
+        if (Math.random() < 0.3) { // 30% chance to increase
+            currentSold += Math.floor(Math.random() * 5) + 1;
+            ticketsSoldElement.textContent = currentSold.toLocaleString();
+        }
+    }, 5000);
+});
+</script>
+{% endblock %}
