@@ -1,0 +1,317 @@
+/* Plinko Game Styles */
+.plinko-container {
+    text-align: center;
+    padding: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 15px;
+    color: white;
+}
+
+.plinko-game {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    border: 3px solid #ffd700;
+}
+
+.plinko-board {
+    position: relative;
+    width: 100%;
+    height: 500px;
+    background: linear-gradient(180deg, #34495e, #2c3e50);
+    border-radius: 15px;
+    margin: 20px 0;
+    overflow: hidden;
+    border: 2px solid #ffd700;
+}
+
+.plinko-row {
+    display: flex;
+    justify-content: space-evenly;
+    margin: 15px 0;
+    position: relative;
+}
+
+.peg {
+    width: 12px;
+    height: 12px;
+    background: #ffd700;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    position: relative;
+}
+
+.peg::after {
+    content: '';
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+}
+
+.plinko-ball {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 1.2em;
+    z-index: 10;
+    transition: all 0.2s ease;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.multiplier-slots {
+    display: flex;
+    justify-content: space-evenly;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 5px;
+}
+
+.multiplier-slot {
+    flex: 1;
+    padding: 8px 4px;
+    margin: 0 2px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 0.9em;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.multiplier-slot.low {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+}
+
+.multiplier-slot.medium {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #333;
+}
+
+.multiplier-slot.high {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+}
+
+.multiplier-slot.ball-landed {
+    animation: ballLanded 1s ease-out;
+    border-color: #ffd700;
+}
+
+.multiplier-slot.winning-slot {
+    animation: winningSlot 3s ease-in-out;
+}
+
+@keyframes ballLanded {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes winningSlot {
+    0%, 100% { 
+        box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+    }
+    50% { 
+        box-shadow: 0 0 30px rgba(255, 215, 0, 1);
+        transform: scale(1.1);
+    }
+}
+
+.game-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.game-controls button {
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.game-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.game-controls button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.bet-controls {
+    margin: 25px 0;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bet-controls input,
+.bet-controls select {
+    padding: 12px;
+    font-size: 1.1em;
+    border: 2px solid #ffd700;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    text-align: center;
+}
+
+.risk-info {
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.game-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.info-item {
+    text-align: center;
+}
+
+.info-item label {
+    display: block;
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 5px;
+}
+
+.info-item span {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.game-status {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.game-status.success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+    border: 2px solid #28a745;
+}
+
+.game-status.error {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+    border: 2px solid #dc3545;
+}
+
+.game-status.info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+    border: 2px solid #17a2b8;
+}
+
+.user-info {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.user-info p {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#balance {
+    color: #28a745;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .plinko-container {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .plinko-game {
+        padding: 20px;
+    }
+    
+    .plinko-board {
+        height: 400px;
+    }
+    
+    .peg {
+        width: 10px;
+        height: 10px;
+    }
+    
+    .peg::after {
+        width: 6px;
+        height: 6px;
+    }
+    
+    .multiplier-slot {
+        font-size: 0.8em;
+        padding: 6px 2px;
+        min-height: 35px;
+    }
+    
+    .game-controls {
+        gap: 10px;
+    }
+    
+    .game-controls button {
+        padding: 10px 16px;
+        font-size: 1em;
+    }
+    
+    .game-info {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+}

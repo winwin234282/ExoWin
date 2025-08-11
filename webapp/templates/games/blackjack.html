@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}Blackjack Game{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/blackjack.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="blackjack-container">
+    <h2>🃏 Blackjack</h2>
+    <p>Get as close to 21 as possible without going over!</p>
+    
+    <div class="user-info">
+        <p>Balance: <span id="balance">{{ user.balance }}</span> coins</p>
+    </div>
+    
+    <div class="game-table">
+        <div class="cards-section">
+            <h4>Dealer</h4>
+            <div class="cards" id="dealer-cards">
+                <!-- Dealer cards will be added here -->
+            </div>
+            <div class="total" id="dealer-total" style="display: none;">Total: 0</div>
+        </div>
+        
+        <div class="cards-section">
+            <h4>Your Hand</h4>
+            <div class="cards" id="player-cards">
+                <!-- Player cards will be added here -->
+            </div>
+            <div class="total" id="player-total">Total: 0</div>
+        </div>
+    </div>
+    
+    <div class="game-status" id="game-status" style="display: none;"></div>
+    
+    <div class="bet-controls" id="bet-controls">
+        <input type="number" id="bet-amount" placeholder="Bet amount" min="1" value="10">
+        <button id="deal-btn" class="btn btn-primary">🃏 Deal Cards</button>
+    </div>
+    
+    <div class="game-controls" id="game-controls" style="display: none;">
+        <button id="hit-btn" class="btn btn-secondary">👆 Hit</button>
+        <button id="stand-btn" class="btn btn-warning">✋ Stand</button>
+        <button id="double-btn" class="btn btn-info">⬆️ Double Down</button>
+    </div>
+    
+    <div id="game-message" class="message"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/blackjack.js') }}"></script>
+{% endblock %}

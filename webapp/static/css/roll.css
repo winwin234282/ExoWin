@@ -1,0 +1,282 @@
+/* Roll Game Styles */
+.roll-container {
+    text-align: center;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 15px;
+    color: white;
+}
+
+.roll-game {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    border: 3px solid #ffd700;
+}
+
+.dice-display {
+    margin: 30px 0;
+    padding: 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 15px;
+    border: 2px solid #ffd700;
+}
+
+.dice-number {
+    font-size: 4em;
+    font-weight: bold;
+    color: #ffd700;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+    margin: 20px 0;
+    font-family: 'Courier New', monospace;
+}
+
+.dice-animation {
+    animation: rollAnimation 2s ease-in-out;
+}
+
+@keyframes rollAnimation {
+    0%, 100% { transform: scale(1) rotate(0deg); }
+    25% { transform: scale(1.1) rotate(90deg); }
+    50% { transform: scale(0.9) rotate(180deg); }
+    75% { transform: scale(1.1) rotate(270deg); }
+}
+
+.game-settings {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 25px 0;
+    background: rgba(255,255,255,0.1);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.setting-group {
+    text-align: left;
+}
+
+.setting-group label {
+    display: block;
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+
+.setting-group input,
+.setting-group select {
+    width: 100%;
+    padding: 10px;
+    font-size: 1em;
+    border: 2px solid #ffd700;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.9);
+    color: #333;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    width: auto;
+    transform: scale(1.2);
+}
+
+.game-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.info-item {
+    text-align: center;
+}
+
+.info-item label {
+    display: block;
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 5px;
+}
+
+.info-item span {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.game-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.game-controls button {
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.game-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.game-controls button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.roll-history {
+    margin: 20px 0;
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.roll-history h4 {
+    color: #ffd700;
+    margin-bottom: 15px;
+}
+
+.history-items {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.history-item {
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-weight: bold;
+    font-size: 0.9em;
+    min-width: 50px;
+    text-align: center;
+}
+
+.history-item.win {
+    background: #28a745;
+    color: white;
+}
+
+.history-item.loss {
+    background: #dc3545;
+    color: white;
+}
+
+.game-status {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.game-status.success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+    border: 2px solid #28a745;
+}
+
+.game-status.error {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+    border: 2px solid #dc3545;
+}
+
+.game-status.info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+    border: 2px solid #17a2b8;
+}
+
+.user-info {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.user-info p {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#balance {
+    color: #28a745;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .roll-container {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .roll-game {
+        padding: 20px;
+    }
+    
+    .dice-number {
+        font-size: 3em;
+    }
+    
+    .game-settings {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .game-controls {
+        gap: 10px;
+    }
+    
+    .game-controls button {
+        padding: 10px 16px;
+        font-size: 1em;
+    }
+    
+    .game-info {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .history-items {
+        gap: 5px;
+    }
+    
+    .history-item {
+        padding: 6px 8px;
+        font-size: 0.8em;
+        min-width: 40px;
+    }
+}

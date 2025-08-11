@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Mines - Gamble Bot{% endblock %}
+{% block game_title %}💎 Mines{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mines.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="game-area">
+    <!-- Game Controls -->
+    <div class="game-controls-container">
+        <div class="betting-controls">
+            <div class="control-row">
+                <div class="input-group">
+                    <label class="input-label" for="betAmount">Bet Amount ($)</label>
+                    <input type="number" id="betAmount" class="input-field" min="0.01" step="0.01" value="1.00">
+                </div>
+                <div class="input-group">
+                    <label class="input-label" for="minesCount">Mines Count</label>
+                    <select id="minesCount" class="input-field">
+                        <option value="1">1 Mine</option>
+                        <option value="3" selected>3 Mines</option>
+                        <option value="5">5 Mines</option>
+                        <option value="10">10 Mines</option>
+                        <option value="15">15 Mines</option>
+                        <option value="20">20 Mines</option>
+                        <option value="24">24 Mines</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="game-controls">
+                <button class="btn btn-primary" id="startGameBtn" onclick="startGame()">
+                    💎 Start Game
+                </button>
+                <button class="btn btn-warning hidden" id="cashoutBtn" onclick="cashOut()">
+                    💰 Cash Out
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Mines Board -->
+    <div class="mines-board-container">
+        <div class="mines-board" id="minesBoard">
+            <!-- 5x5 grid of tiles -->
+        </div>
+        
+        <!-- Game Info -->
+        <div class="game-info">
+            <div class="info-item">
+                <span class="info-label">Gems Found:</span>
+                <span class="info-value" id="gemsFound">0</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Current Multiplier:</span>
+                <span class="info-value" id="currentMultiplier">1.00x</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Potential Win:</span>
+                <span class="info-value" id="potentialWin">$0.00</span>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Game Result -->
+    <div class="result-display hidden" id="gameResult">
+        <div class="result-message" id="resultMessage"></div>
+        <div class="result-amount" id="resultAmount"></div>
+        <button class="btn btn-primary mt-2" onclick="playAgain()">🔄 Play Again</button>
+    </div>
+    
+    <!-- Quick Bet Buttons -->
+    <div class="quick-bets">
+        <button class="btn btn-secondary btn-small" onclick="setBetAmount(0.50)">$0.50</button>
+        <button class="btn btn-secondary btn-small" onclick="setBetAmount(1.00)">$1.00</button>
+        <button class="btn btn-secondary btn-small" onclick="setBetAmount(5.00)">$5.00</button>
+        <button class="btn btn-secondary btn-small" onclick="setBetAmount(10.00)">$10.00</button>
+    </div>
+    
+    <!-- Game Stats -->
+    <div class="game-stats">
+        <div class="stat-item">
+            <div class="stat-value" id="totalGames">0</div>
+            <div class="stat-label">Games Played</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="biggestWin">$0.00</div>
+            <div class="stat-label">Biggest Win</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="maxGems">0</div>
+            <div class="stat-label">Max Gems</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/mines.js') }}"></script>
+{% endblock %}

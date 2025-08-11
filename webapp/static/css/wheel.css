@@ -1,0 +1,313 @@
+/* Wheel Game Styles */
+.wheel-container {
+    text-align: center;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+    background: linear-gradient(135deg, #1a1a2e, #16213e);
+    border-radius: 15px;
+    color: white;
+}
+
+.wheel-game {
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    border-radius: 15px;
+    padding: 30px;
+    margin: 20px 0;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    border: 3px solid #ffd700;
+}
+
+.wheel-section {
+    margin: 30px 0;
+    position: relative;
+}
+
+.wheel-container-inner {
+    position: relative;
+    width: 300px;
+    height: 300px;
+    margin: 0 auto;
+}
+
+.wheel {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 8px solid #ffd700;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.5);
+    background: #333;
+}
+
+.wheel-segment {
+    position: absolute;
+    width: 50%;
+    height: 50%;
+    top: 50%;
+    left: 50%;
+    transform-origin: 0 0;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 15px;
+    font-weight: bold;
+    font-size: 1em;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+    border-left: 1px solid rgba(255,255,255,0.3);
+}
+
+.wheel-segment.low {
+    background: linear-gradient(45deg, #6c757d, #495057);
+}
+
+.wheel-segment.medium {
+    background: linear-gradient(45deg, #ffc107, #e0a800);
+    color: #333;
+}
+
+.wheel-segment.high {
+    background: linear-gradient(45deg, #dc3545, #c82333);
+}
+
+.wheel-segment.winning-segment {
+    animation: winningSegment 3s ease-in-out;
+}
+
+@keyframes winningSegment {
+    0%, 100% { 
+        box-shadow: inset 0 0 20px rgba(255, 215, 0, 0.5);
+    }
+    50% { 
+        box-shadow: inset 0 0 40px rgba(255, 215, 0, 1);
+        transform: scale(1.05);
+    }
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -15px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 2.5em;
+    color: #ffd700;
+    z-index: 10;
+    text-shadow: 3px 3px 6px rgba(0,0,0,0.8);
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.8));
+}
+
+.game-controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 25px 0;
+    flex-wrap: wrap;
+}
+
+.game-controls button {
+    padding: 12px 24px;
+    font-size: 1.1em;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.game-controls button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.game-controls button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.bet-controls {
+    margin: 25px 0;
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.bet-controls input,
+.bet-controls select {
+    padding: 12px;
+    font-size: 1.1em;
+    border: 2px solid #ffd700;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.9);
+    color: #333;
+    text-align: center;
+}
+
+.risk-info {
+    margin: 15px 0;
+    padding: 10px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    font-size: 0.9em;
+    color: #ccc;
+}
+
+.game-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.info-item {
+    text-align: center;
+}
+
+.info-item label {
+    display: block;
+    font-size: 0.9em;
+    color: #ccc;
+    margin-bottom: 5px;
+}
+
+.info-item span {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #ffd700;
+}
+
+.game-status {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin: 20px 0;
+    padding: 15px;
+    border-radius: 10px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.game-status.success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    color: #155724;
+    border: 2px solid #28a745;
+}
+
+.game-status.error {
+    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+    color: #721c24;
+    border: 2px solid #dc3545;
+}
+
+.game-status.info {
+    background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+    color: #0c5460;
+    border: 2px solid #17a2b8;
+}
+
+.user-info {
+    background: rgba(255,255,255,0.1);
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+.user-info p {
+    margin: 0;
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+#balance {
+    color: #28a745;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+}
+
+.multiplier-preview {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.multiplier-preview .preview-slot {
+    padding: 5px 8px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    font-weight: bold;
+    border: 1px solid rgba(255,255,255,0.3);
+}
+
+.multiplier-preview .preview-slot.low {
+    background: #6c757d;
+    color: white;
+}
+
+.multiplier-preview .preview-slot.medium {
+    background: #ffc107;
+    color: #333;
+}
+
+.multiplier-preview .preview-slot.high {
+    background: #dc3545;
+    color: white;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .wheel-container {
+        padding: 15px;
+        margin: 10px;
+    }
+    
+    .wheel-game {
+        padding: 20px;
+    }
+    
+    .wheel-container-inner {
+        width: 250px;
+        height: 250px;
+    }
+    
+    .wheel-segment {
+        font-size: 0.9em;
+        padding-top: 12px;
+    }
+    
+    .wheel-pointer {
+        font-size: 2em;
+    }
+    
+    .game-controls {
+        gap: 10px;
+    }
+    
+    .game-controls button {
+        padding: 10px 16px;
+        font-size: 1em;
+    }
+    
+    .game-info {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+    
+    .multiplier-preview {
+        gap: 3px;
+    }
+    
+    .multiplier-preview .preview-slot {
+        padding: 3px 6px;
+        font-size: 0.7em;
+    }
+}

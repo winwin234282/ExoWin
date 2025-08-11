@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Wheel Game{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/wheel.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="wheel-container">
+    <h2>🎡 Wheel of Fortune</h2>
+    <p>Spin the wheel for random multipliers!</p>
+    
+    <div class="user-info">
+        <p>Balance: <span id="balance">{{ user.balance }}</span> coins</p>
+    </div>
+    
+    <div class="wheel-game">
+        <div class="wheel-section">
+            <div class="wheel-container-inner" id="wheel-container">
+                <!-- Wheel will be created by JavaScript -->
+            </div>
+        </div>
+        
+        <div class="game-info">
+            <div class="info-item">
+                <label>Max Multiplier:</label>
+                <span id="multiplier-display">20x</span>
+            </div>
+        </div>
+        
+        <div class="bet-controls">
+            <input type="number" id="bet-amount" placeholder="Bet amount" min="1" value="10">
+            <select id="risk-level">
+                <option value="low">Low Risk</option>
+                <option value="medium" selected>Medium Risk</option>
+                <option value="high">High Risk</option>
+            </select>
+            <button id="spin-btn" class="btn btn-primary">🎡 Spin Wheel</button>
+        </div>
+        
+        <div class="risk-info">
+            <p><strong>Low Risk:</strong> Higher chance of winning, lower multipliers</p>
+            <p><strong>Medium Risk:</strong> Balanced risk and reward</p>
+            <p><strong>High Risk:</strong> Lower chance of winning, higher multipliers</p>
+        </div>
+        
+        <div class="multiplier-preview" id="multiplier-preview">
+            <!-- Multiplier preview will be shown here -->
+        </div>
+    </div>
+    
+    <div id="game-status" class="game-status" style="display: none;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/wheel.js') }}"></script>
+{% endblock %}

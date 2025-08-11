@@ -1,0 +1,213 @@
+/* Crash Game Specific Styles */
+
+.crash-display {
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    text-align: center;
+}
+
+.multiplier-container {
+    margin-bottom: 20px;
+}
+
+.multiplier-value {
+    font-size: 3rem;
+    font-weight: 900;
+    background: linear-gradient(45deg, #ffd700, #ffed4e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+    margin-bottom: 10px;
+    transition: all 0.1s ease;
+}
+
+.multiplier-value.crashed {
+    background: linear-gradient(45deg, #ef4444, #dc2626);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    animation: crashPulse 0.5s ease-out;
+}
+
+.multiplier-value.rising {
+    animation: multiplierRise 0.1s ease-out;
+}
+
+@keyframes crashPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes multiplierRise {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.crash-status {
+    font-size: 1rem;
+    color: #888;
+    margin-bottom: 10px;
+}
+
+.crash-status.waiting {
+    color: #fbbf24;
+}
+
+.crash-status.rising {
+    color: #10b981;
+    animation: pulse 1s infinite;
+}
+
+.crash-status.crashed {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+/* Crash Graph */
+.crash-graph {
+    background: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    padding: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#crashGraph {
+    width: 100%;
+    height: auto;
+    border-radius: 8px;
+}
+
+/* Betting Controls */
+.betting-controls {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.quick-bets {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    min-width: auto;
+}
+
+/* Game States */
+.game-waiting {
+    opacity: 0.7;
+}
+
+.game-active {
+    opacity: 1;
+}
+
+.game-crashed {
+    opacity: 0.8;
+}
+
+/* Cashout Button Animation */
+.cashout-available {
+    animation: cashoutPulse 1s infinite;
+}
+
+@keyframes cashoutPulse {
+    0% { 
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        transform: scale(1);
+    }
+    50% { 
+        box-shadow: 0 6px 25px rgba(245, 158, 11, 0.6);
+        transform: scale(1.02);
+    }
+    100% { 
+        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);
+        transform: scale(1);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 480px) {
+    .multiplier-value {
+        font-size: 2.5rem;
+    }
+    
+    .crash-graph {
+        padding: 5px;
+    }
+    
+    #crashGraph {
+        width: 100%;
+        height: 150px;
+    }
+    
+    .quick-bets {
+        gap: 5px;
+    }
+    
+    .btn-small {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+    }
+}
+
+/* Auto Cashout Indicator */
+.auto-cashout-indicator {
+    background: rgba(245, 158, 11, 0.2);
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 8px 12px;
+    margin: 10px 0;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #fbbf24;
+}
+
+/* Bet History */
+.bet-history {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 20px;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.bet-history-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: #e5e7eb;
+}
+
+.bet-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+}
+
+.bet-item:last-child {
+    border-bottom: none;
+}
+
+.bet-win {
+    color: #10b981;
+}
+
+.bet-loss {
+    color: #ef4444;
+}

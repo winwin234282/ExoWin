@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Coinflip - Gamble Bot{% endblock %}
+{% block game_title %}🪙 Coinflip{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/coinflip.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="game-area">
+    <!-- Coin Display -->
+    <div class="coin-container">
+        <div class="coin" id="coin">
+            <div class="coin-side coin-heads">
+                <div class="coin-text">HEADS</div>
+            </div>
+            <div class="coin-side coin-tails">
+                <div class="coin-text">TAILS</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Choice Selection -->
+    <div class="choice-selection">
+        <h3 class="choice-title">Choose your side:</h3>
+        <div class="choice-buttons">
+            <button class="btn choice-btn" id="headsBtn" onclick="selectChoice('heads')">
+                🪙 HEADS
+            </button>
+            <button class="btn choice-btn" id="tailsBtn" onclick="selectChoice('tails')">
+                🪙 TAILS
+            </button>
+        </div>
+    </div>
+    
+    <!-- Betting Controls -->
+    <div class="betting-controls">
+        <div class="input-group">
+            <label class="input-label" for="betAmount">Bet Amount ($)</label>
+            <input type="number" id="betAmount" class="input-field" min="0.01" step="0.01" value="1.00" placeholder="Enter bet amount">
+        </div>
+        
+        <div class="selected-choice" id="selectedChoice">
+            <span class="choice-label">Selected:</span>
+            <span class="choice-value" id="choiceValue">None</span>
+        </div>
+        
+        <div class="game-controls">
+            <button class="btn btn-primary" id="flipBtn" onclick="flipCoin()" disabled>
+                🎯 Flip Coin
+            </button>
+        </div>
+        
+        <!-- Quick Bet Buttons -->
+        <div class="quick-bets">
+            <button class="btn btn-secondary btn-small" onclick="setBetAmount(0.50)">$0.50</button>
+            <button class="btn btn-secondary btn-small" onclick="setBetAmount(1.00)">$1.00</button>
+            <button class="btn btn-secondary btn-small" onclick="setBetAmount(5.00)">$5.00</button>
+            <button class="btn btn-secondary btn-small" onclick="setBetAmount(10.00)">$10.00</button>
+        </div>
+    </div>
+    
+    <!-- Game Result -->
+    <div class="result-display hidden" id="gameResult">
+        <div class="result-message" id="resultMessage"></div>
+        <div class="result-amount" id="resultAmount"></div>
+        <button class="btn btn-primary mt-2" onclick="playAgain()">🔄 Play Again</button>
+    </div>
+    
+    <!-- Game Stats -->
+    <div class="game-stats">
+        <div class="stat-item">
+            <div class="stat-value" id="totalFlips">0</div>
+            <div class="stat-label">Total Flips</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="headsWins">0</div>
+            <div class="stat-label">Heads Wins</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value" id="tailsWins">0</div>
+            <div class="stat-label">Tails Wins</div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/coinflip.js') }}"></script>
+{% endblock %}

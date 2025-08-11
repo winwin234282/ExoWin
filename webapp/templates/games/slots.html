@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block title %}Slots Game{% endblock %}
+
+{% block extra_css %}
+<style>
+    .slots-container {
+        text-align: center;
+        padding: 20px;
+    }
+    
+    .slot-machine {
+        background: linear-gradient(45deg, #ffd700, #ffed4e);
+        border: 3px solid #333;
+        border-radius: 15px;
+        padding: 30px;
+        margin: 20px auto;
+        max-width: 400px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+    }
+    
+    .reels {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin: 20px 0;
+    }
+    
+    .reel {
+        width: 80px;
+        height: 80px;
+        border: 2px solid #333;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3em;
+        background: white;
+        animation: spin 0.5s ease-in-out;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotateY(0deg); }
+        50% { transform: rotateY(180deg); }
+        100% { transform: rotateY(360deg); }
+    }
+    
+    .paytable {
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin: 20px 0;
+        font-size: 0.9em;
+    }
+    
+    .bet-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin: 20px 0;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="slots-container">
+    <h2>🎰 Slot Machine</h2>
+    <p>Match symbols to win big!</p>
+    
+    <div class="user-info">
+        <p>Balance: <span id="balance">{{ user.balance }}</span> coins</p>
+    </div>
+    
+    <div class="slot-machine">
+        <div class="reels">
+            <div class="reel" id="reel1">🍒</div>
+            <div class="reel" id="reel2">🍒</div>
+            <div class="reel" id="reel3">🍒</div>
+        </div>
+        
+        <div class="bet-controls">
+            <input type="number" id="bet-amount" placeholder="Bet amount" min="1" value="10">
+            <button id="spin-btn" class="btn btn-primary">🎰 SPIN</button>
+        </div>
+    </div>
+    
+    <div class="paytable">
+        <h4>💰 Paytable</h4>
+        <p>7️⃣ 7️⃣ 7️⃣ = 500x</p>
+        <p>💎 💎 💎 = 100x</p>
+        <p>🔔 🔔 🔔 = 50x</p>
+        <p>🍇 🍇 🍇 = 20x</p>
+        <p>🍊 🍊 🍊 = 15x</p>
+        <p>🍋 🍋 🍋 = 10x</p>
+        <p>🍒 🍒 🍒 = 5x</p>
+        <p>Any two matching = 2x</p>
+    </div>
+    
+    <div id="game-message" class="message"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const spinBtn = document.getElementById('spin-btn');
+    const betAmountInput = document.getElementById('bet-amount');
+    const reels = [
+        document.getElementById('reel1'),
+        document.getElementById('reel2'),
+        document.getElementById('reel3')
+    ];
+    const gameMessage = document.getElementById('game-message');
+    
+    const symbols = ['🍒', '🍋', '🍊', '🍇', '🔔', '💎', '7️⃣'];
+    
+    function animateReels() {
+        reels.forEach((reel, index) => {
+            reel.style.animation = 'none';
+            setTimeout(() => {
+                reel.style.animation = 'spin 0.5s ease-in-out';
+            }, index * 100);
+        });
+    }
+    
+    spinBtn.addEventListener('click', async () => {
+        const betAmount = parseFloat(betAmountInput.value);
+        
+        if (!betAmount || betAmount <= 0) {
+            showMessage('Please enter a valid bet amount', 'error');
+            return;
+        }
+        
+        spinBtn.disabled = true;
+        spinBtn.textContent = '🎰 SPINNING...';
+        
+        // Play spin sound
+        window.gambleAPI.playSound('spin', 0.5);
+        
+        // Animate reels
+        animateReels();
+        
+        try {
+            const response = await fetch('/api/game/bet', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: getUserId(),
+                    game_type: 'slots',
+                    bet_amount: betAmount,
+                    game_data: {}
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                // Show result after animation
+                setTimeout(() => {
+                    reels[0].textContent = data.result.reels[0];
+                    reels[1].textContent = data.result.reels[1];
+                    reels[2].textContent = data.result.reels[2];
+                    
+                    // Update balance
+                    document.getElementById('balance').textContent = data.new_balance;
+                    
+                    if (data.result.outcome === 'win') {
+                        // Check for jackpot (three 7s or similar)
+                        if (data.result.message.toLowerCase().includes('jackpot')) {
+                            window.gambleAPI.playSound('jackpot', 0.7);
+                        } else {
+                            window.gambleAPI.playSound('win', 0.5);
+                        }
+                        showMessage(`🎉 ${data.result.message} Won ${data.result.winnings} coins!`, 'success');
+                    } else {
+                        window.gambleAPI.playSound('lose', 0.4);
+                        showMessage(data.result.message, 'info');
+                    }
+                }, 1500);
+            } else {
+                showMessage(data.error, 'error');
+            }
+        } catch (error) {
+            showMessage('Network error. Please try again.', 'error');
+        }
+        
+        setTimeout(() => {
+            spinBtn.disabled = false;
+            spinBtn.textContent = '🎰 SPIN';
+        }, 2000);
+    });
+</script>
+{% endblock %}

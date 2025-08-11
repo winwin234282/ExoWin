@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Roulette Game{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/roulette.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="roulette-container">
+    <h2>🎯 Roulette</h2>
+    <p>Place your bets and spin the wheel!</p>
+    
+    <div class="user-info">
+        <p>Balance: <span id="balance">{{ user.balance }}</span> coins</p>
+    </div>
+    
+    <div class="wheel-section">
+        <div class="wheel-container" id="wheel-container">
+            <!-- Wheel will be created by JavaScript -->
+        </div>
+        <div class="winning-number-display" id="winning-number" style="display: none;">
+            Winning Number: <span id="winning-num">0</span>
+        </div>
+    </div>
+    
+    <div class="betting-section">
+        <h4>🎰 Place Your Bets</h4>
+        <div class="bet-info">
+            <div>
+                <label>Total Bet:</label>
+                <span id="total-bet">0</span> coins
+            </div>
+        </div>
+        <div id="betting-table">
+            <!-- Betting table will be created by JavaScript -->
+        </div>
+    </div>
+    
+    <div class="game-controls">
+        <input type="number" id="bet-amount" placeholder="Bet amount" min="1" value="10">
+        <button id="spin-btn" class="btn btn-primary">🎯 Spin Wheel</button>
+        <button id="clear-bets-btn" class="btn btn-secondary">🗑️ Clear Bets</button>
+    </div>
+    
+    <div id="game-status" class="game-status" style="display: none;"></div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/roulette.js') }}"></script>
+{% endblock %}

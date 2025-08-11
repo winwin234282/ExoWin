@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gamble Bot{% endblock %}</title>
+    
+    <!-- Telegram Web App Script -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    
+    <!-- Base CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="game-title">{% block game_title %}Gamble Bot{% endblock %}</h1>
+                <div class="balance-display">
+                    <span class="balance-label">Balance:</span>
+                    <span class="balance-amount" id="balance">{{ user.balance if user else 0 }}</span>
+                </div>
+            </div>
+        </header>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <button class="btn btn-secondary" onclick="closeApp()">Close</button>
+                <button class="btn btn-primary" onclick="goToMainMenu()">Main Menu</button>
+            </div>
+        </footer>
+    </div>
+    
+    <!-- Base JavaScript -->
+    <script src="{{ url_for('static', filename='js/base.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+    
+    <script>
+        // Initialize Telegram Web App
+        window.Telegram.WebApp.ready();
+        window.Telegram.WebApp.expand();
+        
+        // Set theme
+        document.body.style.backgroundColor = window.Telegram.WebApp.backgroundColor;
+        document.body.style.color = window.Telegram.WebApp.textColor;
+        
+        // User data
+        window.userData = {
+            user_id: {{ user.user_id if user else 'null' }},
+            balance: {{ user.balance if user else 0 }},
+            total_bets: {{ user.get('total_bets', 0) if user else 0 }},
+            total_wins: {{ user.get('total_wins', 0) if user else 0 }}
+        };
+        
+        // Close app function
+        function closeApp() {
+            window.Telegram.WebApp.close();
+        }
+        
+        // Go to main menu function
+        function goToMainMenu() {
+            window.Telegram.WebApp.sendData(JSON.stringify({
+                action: 'main_menu'
+            }));
+        }
+    </script>
+</body>
+</html>
