@@ -23,6 +23,11 @@ SLOT_PAYOUTS = {
     (1, 2, 3): {"multiplier": 5, "name": "🍋🍊🍇 Fruit Mix"},
     (4, 5, 6): {"multiplier": 8, "name": "🍒🔔💎 Premium Mix"}
 }
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
 
 async def slots_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Handle both direct commands and callback queries

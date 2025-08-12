@@ -19,6 +19,11 @@ BASKETBALL_SCORING = {
 
 async def basketball_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Handle both direct commands and callback queries
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
     if update.message:
         pass
     elif update.callback_query:
