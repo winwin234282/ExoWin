@@ -15,9 +15,19 @@ FOOTBALL_SCORING = {
     3: {"name": "Close", "multiplier": 2, "emoji": "🟡"},
     4: {"name": "Good Goal", "multiplier": 4, "emoji": "🟢"},
     5: {"name": "Perfect Goal", "multiplier": 8, "emoji": "⚽"}
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
 }
 
 async def football_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
     """Handle the /football command"""
     keyboard = [
         [

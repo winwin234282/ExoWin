@@ -19,6 +19,11 @@ BOWLING_SCORING = {
 }
 
 async def bowling_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
     """Handle the /bowling command"""
     keyboard = [
         [
@@ -30,6 +35,11 @@ async def bowling_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             InlineKeyboardButton("📊 Scoring", callback_data="bowling_scoring")
         ]
     ]
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
     reply_markup = InlineKeyboardMarkup(keyboard)
     
     await update.message.reply_text(

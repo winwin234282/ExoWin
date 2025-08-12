@@ -19,6 +19,11 @@ DARTS_SCORING = {
 }
 
 async def darts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
     """Handle the /darts command"""
     keyboard = [
         [
@@ -46,6 +51,11 @@ async def darts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         parse_mode='Markdown'
     )
 
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
 async def darts_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle darts game callbacks"""
     query = update.callback_query

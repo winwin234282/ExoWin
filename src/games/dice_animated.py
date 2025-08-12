@@ -22,43 +22,55 @@ async def dice_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     
-    await update.message.reply_text(
+    message_text = (
         "🎲 **ANIMATED DICE GAME**\n\n"
         "Real Telegram dice animation!\n\n"
         "**Game Modes:**\n"
         "🎲 **Solo**: Guess the number (1-6)\n"
         "👥 **Multiplayer**: Everyone bets, winner takes pot\n"
         "⚔️ **Duel**: Challenge another player\n\n"
-        "🏆 **Win 5x your bet** for correct guess!",
-        reply_markup=reply_markup,
-        parse_mode='Markdown'
+        "🏆 **Win 5x your bet** for correct guess!"
     )
+    
+    # Handle both direct commands and callback queries
+    if update.message:
+        await update.message.reply_text(
+            message_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
+    elif update.callback_query:
+        await update.callback_query.edit_message_text(
+            message_text,
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
 
 async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handle dice game callbacks"""
     query = update.callback_query
     await query.answer()
-    
+
     data = query.data.split('_')
-    
+
     # Handle new betting format: dice_number_amount
     if len(data) == 3 and data[0] == "dice" and data[1].isdigit():
         number = int(data[1])
         bet_amount = float(data[2])
         await handle_dice_bet(query, number, bet_amount)
         return
-    
+
     action = data[1]
-    
+
     if action == "solo":
         # Show number selection for solo game
         keyboard = []
         for i in range(1, 7):
             keyboard.append([InlineKeyboardButton(f"🎯 Pick {i}", callback_data=f"dice_pick_{i}")])
-        
+
         keyboard.append([InlineKeyboardButton("🔙 Back", callback_data="dice_back")])
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await query.edit_message_text(
             "🎲 **SOLO DICE GAME**\n\n"
             "Pick your lucky number (1-6):\n"
@@ -66,11 +78,11 @@ async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
-    
+
     elif action == "pick":
         # Handle number selection for solo game
         number = int(data[2])
-        
+
         keyboard = [
             [
                 InlineKeyboardButton("💰 $1", callback_data=f"dice_solo_bet_{number}_1"),
@@ -87,7 +99,7 @@ async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await query.edit_message_text(
             f"🎲 **DICE GAME**\n\n"
             f"🎯 Your number: **{number}**\n"
@@ -95,13 +107,13 @@ async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
-    
+
     elif action == "solo" and len(data) >= 5:
         # Handle solo game execution
         number = int(data[3])
         bet_amount = float(data[4])
         await execute_solo_dice_game(query, number, bet_amount)
-    
+
     elif action == "multiplayer":
         # Show multiplayer options
         keyboard = [
@@ -118,7 +130,7 @@ async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await query.edit_message_text(
             "👥 **MULTIPLAYER DICE**\n\n"
             "Create a game for other players to join!\n"
@@ -126,7 +138,7 @@ async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
-    
+
     elif action == "duel":
         # Show duel options
         keyboard = [
@@ -143,7 +155,7 @@ async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             ]
         ]
         reply_markup = InlineKeyboardMarkup(keyboard)
-        
+
         await query.edit_message_text(
             "⚔️ **DICE DUEL**\n\n"
             "Challenge another player to a dice duel!\n"
@@ -151,11 +163,38 @@ async def dice_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
             reply_markup=reply_markup,
             parse_mode='Markdown'
         )
+    
+    elif action == "back":
+        # Go back to main dice menu
+        await dice_command(update, context)
+    
+    elif action == "help":
+        # Show help text
+        keyboard = [[InlineKeyboardButton("🔙 Back", callback_data="dice_back")]]
+        reply_markup = InlineKeyboardMarkup(keyboard)
+        
+        await query.edit_message_text(
+            "📊 **DICE GAME RULES**\n\n"
+            "🎲 **Solo Mode:**\n"
+            "• Pick a number (1-6)\n"
+            "• Place your bet\n"
+            "• If dice shows your number, win 5x your bet!\n\n"
+            "👥 **Multiplayer Mode:**\n"
+            "• Create a game with your bet\n"
+            "• Other players join with same bet\n"
+            "• Everyone rolls, highest number wins the pot!\n\n"
+            "⚔️ **Duel Mode:**\n"
+            "• Challenge another player\n"
+            "• Both roll dice\n"
+            "• Highest number wins both bets!",
+            reply_markup=reply_markup,
+            parse_mode='Markdown'
+        )
 
 async def execute_solo_dice_game(query, choice: int, bet_amount: float):
     """Execute a solo dice game with Telegram animation"""
     user = await get_user(query.from_user.id)
-    
+
     if user["balance"] < bet_amount:
         await query.edit_message_text(
             f"❌ Insufficient funds!\n"
@@ -163,11 +202,11 @@ async def execute_solo_dice_game(query, choice: int, bet_amount: float):
             f"Required: {format_money(bet_amount)}"
         )
         return
-    
+
     # Deduct bet amount
     await update_user_balance(user["user_id"], -bet_amount)
     await record_transaction(user["user_id"], -bet_amount, "dice bet", "Solo dice game")
-    
+
     # Show rolling animation
     await query.edit_message_text(
         f"🎲 **ROLLING DICE...**\n\n"
@@ -176,40 +215,40 @@ async def execute_solo_dice_game(query, choice: int, bet_amount: float):
         f"🎲 Rolling... 🎲",
         parse_mode='Markdown'
     )
-    
+
     # Send animated dice using Telegram's built-in dice animation
     dice_message = await query.message.reply_dice(emoji="🎲")
-    
+
     # Wait for animation to complete
     await asyncio.sleep(4)
-    
+
     # Get the dice result from Telegram's animation
     result = dice_message.dice.value
     won = choice == result
-    
+
     # Calculate winnings (5x for correct guess)
     winnings = bet_amount * 5 if won else 0
-    
+
     # Record game result
     game_id = await record_game(
-        user["user_id"], 
-        "dice", 
-        bet_amount, 
-        "win" if won else "loss", 
+        user["user_id"],
+        "dice",
+        bet_amount,
+        "win" if won else "loss",
         winnings
     )
-    
+
     # Update user balance if won
     if won:
         await update_user_balance(user["user_id"], winnings)
         await record_transaction(user["user_id"], winnings, "dice win", f"Game ID: {game_id}")
-    
+
     # Get updated user data
     user = await get_user(user["user_id"])
-    
+
     # Create animated result message
     dice_emojis = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"]
-    
+
     if won:
         result_text = (
             f"🎉 **JACKPOT!** 🎉\n\n"
@@ -229,7 +268,7 @@ async def execute_solo_dice_game(query, choice: int, bet_amount: float):
             f"💳 Balance: {format_money(user['balance'])}\n\n"
             f"🎲 Try again for the win!"
         )
-    
+
     keyboard = [
         [
             InlineKeyboardButton("🎲 Roll Again", callback_data=f"dice_solo_bet_{choice}_{bet_amount}"),
@@ -241,14 +280,14 @@ async def execute_solo_dice_game(query, choice: int, bet_amount: float):
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await query.message.reply_text(result_text, reply_markup=reply_markup, parse_mode='Markdown')
 
 async def handle_dice_bet(query, number: int, bet_amount: float):
     """Handle dice betting from the games menu"""
     user_id = query.from_user.id
     user = await get_user(user_id)
-    
+
     if user["balance"] < bet_amount:
         await query.edit_message_text(
             f"❌ Insufficient funds!\n\n"
@@ -258,28 +297,28 @@ async def handle_dice_bet(query, number: int, bet_amount: float):
             parse_mode='Markdown'
         )
         return
-    
+
     # Deduct bet amount
     await update_user_balance(user_id, -bet_amount)
     await record_transaction(user_id, -bet_amount, "bet")
-    
+
     # Send dice animation
     dice_message = await query.message.reply_dice(emoji="🎲")
-    
+
     # Wait for animation to complete
     await asyncio.sleep(4)
-    
+
     # Get dice result
     dice_result = dice_message.dice.value
     won = dice_result == number
-    
+
     # Calculate winnings
     winnings = bet_amount * 6 if won else 0
-    
+
     if won:
         await update_user_balance(user_id, winnings)
         await record_transaction(user_id, winnings, "win")
-    
+
     # Record game
     await record_game(
         user_id=user_id,
@@ -289,10 +328,10 @@ async def handle_dice_bet(query, number: int, bet_amount: float):
         winnings=winnings,
         game_data={"guess": number, "result": dice_result}
     )
-    
+
     # Update user balance
     updated_user = await get_user(user_id)
-    
+
     # Create result message
     if won:
         result_text = (
@@ -311,7 +350,7 @@ async def handle_dice_bet(query, number: int, bet_amount: float):
             f"💸 Lost: {format_money(bet_amount)}\n"
             f"💳 Balance: {format_money(updated_user['balance'])}"
         )
-    
+
     # Create play again keyboard
     keyboard = [
         [
@@ -324,7 +363,7 @@ async def handle_dice_bet(query, number: int, bet_amount: float):
         ]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    
+
     await query.message.reply_text(result_text, reply_markup=reply_markup, parse_mode='Markdown')
 
 # Export the callback handler
