@@ -19,6 +19,11 @@ BOWLING_SCORING = {
 }
 
 async def bowling_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # Handle both direct commands and callback queries
+    if update.message:
+        pass
+    elif update.callback_query:
+        update.message = update.callback_query.message
     """Handle the /bowling command"""
     keyboard = [
         [
